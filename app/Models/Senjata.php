@@ -16,6 +16,8 @@ class Senjata extends Model
         'penanggung_jawab',
         'nrp',
         'status_penyimpanan',
+        'jenis_amunisi_dibawa',
+        'jumlah_amunisi_dibawa',
         'masa_berlaku_simsa',
         'keterangan',
     ];

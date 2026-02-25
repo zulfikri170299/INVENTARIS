@@ -22,6 +22,8 @@ class KendaraanImport implements ToModel, WithHeadingRow
             'jenis_roda'      => $row['jenis_roda'] ?? 'R4',
             'jenis_kendaraan' => $row['jenis_kendaraan'],
             'nup'             => $row['nup'],
+            'tahun_pembuatan' => $row['tahun_pembuatan'],
+            'no_mesin'        => $row['no_mesin'],
             'no_rangka'       => $row['no_rangka'],
             'nopol'           => $row['nopol'],
             'kondisi'         => $row['kondisi'] ?? 'Baik',

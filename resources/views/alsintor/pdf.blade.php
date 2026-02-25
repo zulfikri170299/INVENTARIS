@@ -41,7 +41,8 @@
 
 <body>
     <h2>LAPORAN INVENTARIS {{ isset($alsuses) ? 'ALSUS' : 'ALSINTOR' }}
-        {{ $satker ? '- ' . strtoupper($satker->nama_satker) : '' }}</h2>
+        {{ $satker ? '- ' . strtoupper($satker->nama_satker) : '' }}
+    </h2>
     <p>Dicetak pada: {{ now()->format('d/m/Y H:i') }}</p>
 
     <table>
@@ -52,7 +53,7 @@
                     <th>Satker</th>
                 @endif
                 <th>Nama Barang</th>
-                <th>No. Seri (NUP)</th>
+                <th>NUP</th>
                 <th>Kondisi</th>
                 <th>Keterangan</th>
             </tr>

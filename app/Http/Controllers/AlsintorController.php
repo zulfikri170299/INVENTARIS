@@ -6,12 +6,15 @@ use App\Models\Alsintor;
 use App\Models\Satker;
 use App\Imports\AlsintorImport;
 use App\Exports\AlsintorTemplateExport;
+use App\Exports\AlsintorExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Traits\LogActivity;
 
 class AlsintorController extends Controller
 {
+    use LogActivity;
     public function index(Request $request)
     {
         $query = Alsintor::with('satker');
@@ -33,7 +36,8 @@ class AlsintorController extends Controller
             $query->where('kondisi', $request->kondisi);
         }
 
-        $alsintors = $query->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $alsintors = $query->latest()->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('alsintor.index', compact('alsintors', 'satkers'));
@@ -53,7 +57,9 @@ class AlsintorController extends Controller
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
-        Alsintor::create($validated);
+        $alsintor = Alsintor::create($validated);
+
+        $this->logActivity('Tambah Alsintor', 'Menambahkan data alsintor: ' . $alsintor->jenis_barang . ' (NUP: ' . ($alsintor->nup ?? '-') . ')', 'Alsintor');
 
         return back()->with('success', 'Data alsintor berhasil ditambahkan.');
     }
@@ -77,13 +83,15 @@ class AlsintorController extends Controller
         \Log::debug("Updating Alsintor ID: " . $id, $validated);
         $alsintor->update($validated);
 
+        $this->logActivity('Update Alsintor', 'Memperbarui data alsintor: ' . $alsintor->jenis_barang . ' (NUP: ' . ($alsintor->nup ?? '-') . ')', 'Alsintor');
+
         return redirect()->route('alsintor.index')->with('success', 'Data alsintor berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         $alsintor = Alsintor::findOrFail($id);
-        \Log::debug("Menghapus Alsintor ID: " . $alsintor->id);
+        $this->logActivity('Hapus Alsintor', 'Menghapus data alsintor: ' . $alsintor->jenis_barang . ' (NUP: ' . ($alsintor->nup ?? '-') . ')', 'Alsintor');
         $alsintor->delete();
         return redirect()->route('alsintor.index')->with('success', 'Data alsintor berhasil dihapus.');
     }
@@ -185,6 +193,30 @@ class AlsintorController extends Controller
         $pdf = Pdf::loadView('alsintor.pdf', compact('alsintors', 'satker'));
 
         return $pdf->download('laporan-alsintor.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $query = \App\Models\Alsintor::with('satker');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+            $query->where('satker_id', auth()->user()->satker_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
+                  ->orWhere('nup', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('satker_id')) {
+            $query->where('satker_id', $request->satker_id);
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        return Excel::download(new AlsintorExport($query), 'laporan-alsintor.xlsx');
     }
 
     public function downloadTemplate()

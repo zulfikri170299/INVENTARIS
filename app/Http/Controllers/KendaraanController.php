@@ -6,12 +6,15 @@ use App\Models\Kendaraan;
 use App\Models\Satker;
 use App\Imports\KendaraanImport;
 use App\Exports\KendaraanTemplateExport;
+use App\Exports\KendaraanExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Traits\LogActivity;
 
 class KendaraanController extends Controller
 {
+    use LogActivity;
     public function index(Request $request)
     {
         $query = Kendaraan::with('satker');
@@ -38,7 +41,8 @@ class KendaraanController extends Controller
             $query->where('jenis_roda', $request->jenis_roda);
         }
 
-        $kendaraans = $query->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $kendaraans = $query->latest()->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('kendaraan.index', compact('kendaraans', 'satkers'));
@@ -51,6 +55,8 @@ class KendaraanController extends Controller
             'jenis_roda' => 'required|in:R2,R4,R6,R8',
             'jenis_kendaraan' => 'required|string',
             'nup' => 'nullable|string',
+            'tahun_pembuatan' => 'nullable|string',
+            'no_mesin' => 'nullable|string',
             'no_rangka' => 'nullable|string',
             'nopol' => 'nullable|string',
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
@@ -64,7 +70,9 @@ class KendaraanController extends Controller
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
-        Kendaraan::create($validated);
+        $kendaraan = Kendaraan::create($validated);
+
+        $this->logActivity('Tambah Kendaraan', 'Menambahkan kendaraan baru: ' . $kendaraan->jenis_kendaraan . ' (Nopol: ' . ($kendaraan->nopol ?? '-') . ')', 'Kendaraan');
 
         return back()->with('success', 'Data kendaraan berhasil ditambahkan.');
     }
@@ -94,13 +102,15 @@ class KendaraanController extends Controller
         \Log::debug("Updating Kendaraan ID: " . $id, $validated);
         $kendaraan->update($validated);
 
+        $this->logActivity('Update Kendaraan', 'Memperbarui data kendaraan: ' . $kendaraan->jenis_kendaraan . ' (Nopol: ' . ($kendaraan->nopol ?? '-') . ')', 'Kendaraan');
+
         return redirect()->route('kendaraan.index')->with('success', 'Data kendaraan berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         $kendaraan = Kendaraan::findOrFail($id);
-        \Log::debug("Menghapus Kendaraan ID: " . $kendaraan->id);
+        $this->logActivity('Hapus Kendaraan', 'Menghapus data kendaraan: ' . $kendaraan->jenis_kendaraan . ' (Nopol: ' . ($kendaraan->nopol ?? '-') . ')', 'Kendaraan');
         $kendaraan->delete();
         return redirect()->route('kendaraan.index')->with('success', 'Data kendaraan berhasil dihapus.');
     }
@@ -217,6 +227,35 @@ class KendaraanController extends Controller
         $pdf = Pdf::loadView('kendaraan.pdf', compact('kendaraans', 'satker'));
 
         return $pdf->download('laporan-kendaraan.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $query = Kendaraan::with('satker');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+            $query->where('satker_id', auth()->user()->satker_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('jenis_kendaraan', 'like', '%' . $request->search . '%')
+                  ->orWhere('nup', 'like', '%' . $request->search . '%')
+                  ->orWhere('nopol', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('satker_id')) {
+            $query->where('satker_id', $request->satker_id);
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        if ($request->filled('jenis_roda')) {
+            $query->where('jenis_roda', $request->jenis_roda);
+        }
+
+        return Excel::download(new KendaraanExport($query), 'laporan-kendaraan.xlsx');
     }
 
     public function downloadTemplate()

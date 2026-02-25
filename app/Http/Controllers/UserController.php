@@ -8,24 +8,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 
-class UserController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use App\Traits\LogActivity;
+
+class UserController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    use LogActivity;
+    public static function middleware(): array
     {
-        $this->middleware(function ($request, $next) {
-            if (auth()->user()->role !== 'Super Admin') {
-                abort(403, 'Akses ditolak.');
-            }
-            return $next($request);
-        });
+        return [
+            new Middleware(function ($request, $next) {
+                if (auth()->user()->role !== 'Super Admin') {
+                    abort(403, 'Akses ditolak.');
+                }
+                return $next($request);
+            }),
+        ];
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('satker')->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $users = User::with('satker')->latest()->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
         return view('user.index', compact('users', 'satkers'));
     }
@@ -43,13 +51,15 @@ class UserController extends Controller
             'satker_id' => ['nullable', 'exists:satkers,id'],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'satker_id' => $request->satker_id,
         ]);
+
+        $this->logActivity('Tambah User', 'Menambahkan user baru: ' . $user->name . ' (' . $user->role . ')', 'Manajemen User');
 
         return back()->with('success', 'User berhasil ditambahkan.');
     }
@@ -85,6 +95,8 @@ class UserController extends Controller
         \Log::debug("Updating User ID: " . $id, $data);
         $user->update($data);
 
+        $this->logActivity('Update User', 'Memperbarui data user: ' . $user->name . ' (' . $user->role . ')', 'Manajemen User');
+
         return redirect()->route('user.index')->with('success', 'User berhasil diperbarui.');
     }
 
@@ -97,6 +109,7 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
 
+        $this->logActivity('Hapus User', 'Menghapus user: ' . $user->name . ' (' . $user->role . ')', 'Manajemen User');
         $user->delete();
 
         return back()->with('success', 'User berhasil dihapus.');
@@ -113,6 +126,8 @@ class UserController extends Controller
         $user->update([
             'password' => Hash::make($newPassword),
         ]);
+
+        $this->logActivity('Reset Password', 'Mereset password user: ' . $user->name, 'Manajemen User');
 
         return back()->with('success', "Password untuk {$user->name} berhasil direset menjadi: {$newPassword}");
     }

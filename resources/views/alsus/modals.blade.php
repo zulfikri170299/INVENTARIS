@@ -32,7 +32,7 @@
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Seri (NUP)</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">NUP</label>
                         <input type="text" name="nup"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
@@ -97,7 +97,7 @@
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Seri (NUP)</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">NUP</label>
                         <input type="text" name="nup" x-model="formData.nup"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>

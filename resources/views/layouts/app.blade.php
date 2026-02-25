@@ -66,20 +66,93 @@
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .swal2-popup {
+            background: rgba(15, 23, 42, 0.9) !important;
+            backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 24px !important;
+            color: #f1f5f9 !important;
+        }
+
+        .swal2-title {
+            color: #f1f5f9 !important;
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        .swal2-html-container {
+            color: #94a3b8 !important;
+        }
+
+        .swal2-confirm {
+            background: #ef4444 !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+        }
+
+        .swal2-cancel {
+            background: #1e293b !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+        }
+    </style>
+    <script>
+        window.confirmDelete = function (formId, name) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data " + name + " akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#1e293b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            })
+        }
+    </script>
 
     <!-- Alpine.js (for Dropdowns/Sidebar) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="font-sans antialiased text-gray-200" x-data="{ sidebarOpen: true }">
-    <div class="min-h-screen flex bg-[#0b1120]">
+<body class="font-sans antialiased text-gray-200 overflow-hidden" x-data="{ sidebarOpen: true }">
+    <div class="h-screen flex bg-[#0b1120] overflow-hidden">
 
         <!-- Sidebar -->
         <aside
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0f172a] border-r border-gray-800 transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0"
+            class="fixed inset-y-0 left-0 z-50 w-52 bg-[#0f172a] border-r border-gray-800 transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 h-full flex flex-col flex-shrink-0"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
-            <div class="flex items-center justify-between px-6 py-6 h-20">
+            <div class="flex items-center justify-between px-6 py-2 h-14">
                 <div class="flex items-center">
                     <img src="{{ asset('rolog.png') }}" alt="Logo" class="h-8 mr-3">
                     <span
@@ -92,51 +165,67 @@
                 </button>
             </div>
 
-            <nav class="mt-6 px-4 space-y-2">
+            <nav class="mt-4 px-4 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
                 <a href="{{ route('dashboard') }}"
-                    class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('dashboard') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                    <i class="ph ph-squares-four text-xl mr-3"></i>
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('dashboard') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-squares-four text-xl mr-2"></i>
                     <span class="font-medium text-sm text-decoration-none">Dashboard</span>
                 </a>
 
-                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mt-8 mb-2">Manajemen</div>
+                <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 mt-4 mb-1">Manajemen
+                </div>
 
                 <a href="{{ route('senjata.index') }}"
-                    class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('senjata.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                    <i class="ph ph-shield text-xl mr-3"></i>
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('senjata.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-shield text-xl mr-2"></i>
                     <span class="font-medium text-sm">Senjata</span>
                 </a>
                 <a href="{{ route('kendaraan.index') }}"
-                    class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('kendaraan.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                    <i class="ph ph-car text-xl mr-3"></i>
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('kendaraan.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-car text-xl mr-2"></i>
                     <span class="font-medium text-sm">Kendaraan</span>
                 </a>
                 <a href="{{ route('alsus.index') }}"
-                    class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('alsus.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                    <i class="ph ph-gear text-xl mr-3"></i>
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('alsus.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-gear text-xl mr-2"></i>
                     <span class="font-medium text-sm">Alsus</span>
                 </a>
                 <a href="{{ route('alsintor.index') }}"
-                    class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('alsintor.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                    <i class="ph ph-farm text-xl mr-3"></i>
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('alsintor.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-farm text-xl mr-2"></i>
                     <span class="font-medium text-sm">Alsintor</span>
                 </a>
+                <a href="{{ route('amunisi.index') }}"
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('amunisi.index') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-bounding-box text-xl mr-2"></i>
+                    <span class="font-medium text-sm">Amunisi</span>
+                </a>
+                <a href="{{ route('amunisi-history.index') }}"
+                    class="flex items-center px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('amunisi-history.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
+                    <i class="ph ph-clock-counter-clockwise text-xl mr-2"></i>
+                    <span class="font-medium text-sm">Riwayat Amunisi</span>
+                </a>
                 @if(in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                    <div class="px-6 mb-2">
+                    <div class="px-6 mt-4 mb-1">
                         <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Data</p>
                     </div>
-                    <div class="px-3 space-y-1 mb-6">
+                    <div class="px-3 space-y-0.5 mb-1">
                         @if(auth()->user()->role === 'Super Admin')
+                            <a href="{{ route('activity-logs.index') }}"
+                                class="flex items-center px-4 py-1 rounded-2xl transition-all duration-300 {{ request()->routeIs('activity-logs.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }}">
+                                <i class="ph ph-clock-counter-clockwise mr-2 text-xl"></i>
+                                <span class="text-sm font-semibold">Log Aktivitas</span>
+                            </a>
                             <a href="{{ route('users.index') }}"
-                                class="flex items-center px-4 py-3 rounded-2xl transition-all duration-300 {{ request()->routeIs('users.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }}">
-                                <i class="ph ph-users mr-3 text-xl"></i>
-                                <span class="text-sm font-semibold">Manajemen User</span>
+                                class="flex items-center px-4 py-1 rounded-2xl transition-all duration-300 {{ request()->routeIs('users.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }}">
+                                <i class="ph ph-users mr-2 text-xl"></i>
+                                <span class="text-sm font-semibold">User</span>
                             </a>
                         @endif
                         <a href="{{ route('satkers.index') }}"
-                            class="flex items-center px-4 py-3 rounded-2xl transition-all duration-300 {{ request()->routeIs('satkers.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }}">
-                            <i class="ph ph-buildings mr-3 text-xl"></i>
-                            <span class="text-sm font-semibold">Manajemen Satker</span>
+                            class="flex items-center px-4 py-1 rounded-2xl transition-all duration-300 {{ request()->routeIs('satkers.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }}">
+                            <i class="ph ph-buildings mr-2 text-xl"></i>
+                            <span class="text-sm font-semibold">Satker</span>
                         </a>
                     </div>
                 @endif
@@ -145,7 +234,7 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto custom-scrollbar">
             <!-- Top Header -->
             <header
                 class="h-20 bg-[#0f172a]/50 backdrop-blur-md border-b border-gray-800 flex items-center justify-between px-8 sticky top-0 z-40">
@@ -407,6 +496,29 @@
             </template>
         </div>
     </div>
+
+    <!-- Session Alerts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: "{{ session('success') }}",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    text: "{{ session('error') }}",
+                });
+            @endif
+        });
+    </script>
 </body>
 
 </html>

@@ -77,7 +77,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert('Terjadi kesalahan saat mengimpor data.');
+                Swal.fire('Error', 'Terjadi kesalahan saat mengimpor data.', 'error');
             } finally {
                 this.loading = false;
             }
@@ -122,11 +122,33 @@
                     <i class="ph ph-file-arrow-up mr-2 text-lg"></i>
                     Import Excel
                 </button>
-                <a href="{{ route('kendaraan.export-pdf', request()->all()) }}"
-                    class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold shadow-lg shadow-red-500/20 transition-all flex items-center">
-                    <i class="ph ph-file-pdf mr-2 text-lg"></i>
-                    Cetak PDF
-                </a>
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false"
+                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition-all flex items-center">
+                        <i class="ph ph-export mr-2 text-lg"></i>
+                        Export
+                        <i class="ph ph-caret-down ml-2 text-sm transition-transform"
+                            :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute left-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                        <a href="{{ route('kendaraan.export-pdf', request()->all()) }}"
+                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-pdf mr-3 text-red-500 text-lg"></i>
+                            Cetak PDF
+                        </a>
+                        <a href="{{ route('kendaraan.export-excel', request()->all()) }}"
+                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-xls mr-3 text-green-500 text-lg"></i>
+                            Export Excel
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Simple Search -->
@@ -136,6 +158,9 @@
                         class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-10 py-2.5 focus:ring-primary-500 focus:border-primary-500 w-64 transition-all">
                     <i class="ph ph-magnifying-glass absolute left-3 top-3 text-gray-500"></i>
                 </div>
+                @if(request('per_page'))
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                @endif
                 <button type="submit"
                     class="p-2.5 bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-700 transition-colors">
                     <i class="ph ph-funnel text-xl"></i>
@@ -198,17 +223,33 @@
 
         <!-- Table -->
         <div class="glass-card rounded-3xl overflow-hidden">
+            <div class="px-8 py-4 bg-gray-800/10 border-b border-gray-800 flex justify-between items-center">
+                <div class="flex items-center space-x-2 text-gray-400">
+                    <span class="text-xs uppercase font-semibold">Tampilkan:</span>
+                    <select onchange="window.location.href = this.value"
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-1.5 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        @foreach([10, 25, 50, 100] as $size)
+                            <option value="{{ request()->fullUrlWithQuery(['per_page' => $size]) }}" {{ (request('per_page') ?? 10) == $size ? 'selected' : '' }}>
+                                {{ $size }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="text-xs text-gray-500 ml-2">data per halaman</span>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
                         <tr>
-                            <th class="px-8 py-4 w-16 text-center">NO</th>
-                            <th class="px-8 py-4">Nama Kendaraan</th>
-                            <th class="px-8 py-4">No. Rangka</th>
+                            <th class="px-2 py-4 w-10 text-center">NO</th>
                             @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
                                 <th class="px-8 py-4">Satker</th>
                             @endif
+                            <th class="px-8 py-4">Jenis Kendaraan</th>
                             <th class="px-8 py-4">Plat Nomor</th>
+                            <th class="px-8 py-4">No. Rangka</th>
+                            <th class="px-8 py-4">No. Mesin</th>
+                            <th class="px-8 py-4">Tahun</th>
                             <th class="px-8 py-4">Roda</th>
                             <th class="px-8 py-4">Kondisi</th>
                             <th class="px-8 py-4">Penanggung Jawab</th>
@@ -218,18 +259,20 @@
                     <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
                         @forelse($kendaraans as $kendaraan)
                             <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-8 py-4 text-center font-bold text-gray-500">
+                                <td class="px-2 py-4 text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($kendaraans->firstItem() - 1) }}
                                 </td>
+                                @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
+                                    <td class="px-8 py-4 text-xs">{{ $kendaraan->satker->nama_satker ?? '-' }}</td>
+                                @endif
                                 <td class="px-8 py-4">
                                     <span class="font-medium text-gray-100">{{ $kendaraan->jenis_kendaraan }}</span>
                                     <span class="block text-xs text-gray-500">{{ $kendaraan->bahan_bakar }}</span>
                                 </td>
-                                <td class="px-8 py-4 text-xs font-mono">{{ $kendaraan->no_rangka ?? '-' }}</td>
-                                @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                                    <td class="px-8 py-4 text-xs">{{ $kendaraan->satker->nama_satker ?? '-' }}</td>
-                                @endif
                                 <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->nopol ?? '-' }}</td>
+                                <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->no_rangka ?? '-' }}</td>
+                                <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->no_mesin ?? '-' }}</td>
+                                <td class="px-8 py-4 text-xs">{{ $kendaraan->tahun_pembuatan ?? '-' }}</td>
                                 <td class="px-8 py-4 text-xs font-bold text-gray-400">{{ $kendaraan->jenis_roda }}</td>
                                 <td class="px-8 py-4">
                                     @php
@@ -254,10 +297,11 @@
                                             title="Edit">
                                             <i class="ph ph-pencil-simple text-lg"></i>
                                         </button>
-                                        <form action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST"
-                                            onsubmit="return confirm('Hapus data ini?')">
+                                        <form id="delete-form-{{ $kendaraan->id }}"
+                                            action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST">
                                             @csrf @method('DELETE')
-                                            <button type="submit"
+                                            <button type="button"
+                                                onclick="confirmDelete('delete-form-{{ $kendaraan->id }}', 'data ini')"
                                                 class="p-2 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
                                                 title="Hapus">
                                                 <i class="ph ph-trash text-lg"></i>

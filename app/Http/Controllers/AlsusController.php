@@ -6,12 +6,15 @@ use App\Models\Alsus;
 use App\Models\Satker;
 use App\Imports\AlsusImport;
 use App\Exports\AlsusTemplateExport;
+use App\Exports\AlsusExport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Traits\LogActivity;
 
 class AlsusController extends Controller
 {
+    use LogActivity;
     public function index(Request $request)
     {
         $query = Alsus::with('satker');
@@ -33,7 +36,8 @@ class AlsusController extends Controller
             $query->where('kondisi', $request->kondisi);
         }
 
-        $alsuses = $query->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $alsuses = $query->latest()->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('alsus.index', compact('alsuses', 'satkers'));
@@ -53,7 +57,9 @@ class AlsusController extends Controller
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
-        Alsus::create($validated);
+        $alsus = Alsus::create($validated);
+
+        $this->logActivity('Tambah Alsus', 'Menambahkan data alsus: ' . $alsus->jenis_barang . ' (NUP: ' . ($alsus->nup ?? '-') . ')', 'Alsus');
 
         return back()->with('success', 'Data alsus berhasil ditambahkan.');
     }
@@ -77,13 +83,15 @@ class AlsusController extends Controller
         \Log::debug("Updating Alsus ID: " . $id, $validated);
         $alsus->update($validated);
 
+        $this->logActivity('Update Alsus', 'Memperbarui data alsus: ' . $alsus->jenis_barang . ' (NUP: ' . ($alsus->nup ?? '-') . ')', 'Alsus');
+
         return redirect()->route('alsus.index')->with('success', 'Data alsus berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         $alsus = Alsus::findOrFail($id);
-        \Log::debug("Menghapus Alsus ID: " . $alsus->id);
+        $this->logActivity('Hapus Alsus', 'Menghapus data alsus: ' . $alsus->jenis_barang . ' (NUP: ' . ($alsus->nup ?? '-') . ')', 'Alsus');
         $alsus->delete();
         return redirect()->route('alsus.index')->with('success', 'Data alsus berhasil dihapus.');
     }
@@ -185,6 +193,30 @@ class AlsusController extends Controller
         $pdf = Pdf::loadView('alsus.pdf', compact('alsuses', 'satker'));
 
         return $pdf->download('laporan-alsus.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $query = Alsus::with('satker');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+            $query->where('satker_id', auth()->user()->satker_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
+                  ->orWhere('nup', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('satker_id')) {
+            $query->where('satker_id', $request->satker_id);
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        return Excel::download(new AlsusExport($query), 'laporan-alsus.xlsx');
     }
 
     public function downloadTemplate()

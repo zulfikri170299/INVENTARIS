@@ -11,6 +11,8 @@ class Kendaraan extends Model
         'satker_id',
         'jenis_kendaraan',
         'nup',
+        'tahun_pembuatan',
+        'no_mesin',
         'no_rangka',
         'nopol',
         'kondisi',

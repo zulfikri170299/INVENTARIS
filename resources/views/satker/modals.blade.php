@@ -1,3 +1,5 @@
+@include('satker.import_modals')
+
 <!-- Add Modal -->
 <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -5,12 +7,17 @@
             class="fixed inset-0 transition-opacity bg-black/60 backdrop-blur-sm"></div>
         <div
             class="inline-block w-full max-w-lg p-8 my-8 overflow-hidden text-left align-middle transition-all transform glass-card rounded-3xl shadow-2xl relative">
-            <h3 class="text-2xl font-bold text-white mb-6">Tambah Satker</h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white">Tambah Satker</h3>
+                <button @click="showAddModal = false" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
             <form action="{{ route('satkers.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-2">Nama Satuan Kerja</label>
-                    <input type="text" name="nama_satker" required placeholder="Contoh: Polres Metro Jaya"
+                    <input type="text" name="nama_satker" required placeholder="Contoh: Polsek Metro Penjaringan"
                         class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 focus:border-primary-500 transition-all">
                 </div>
                 <div class="flex justify-end gap-3 pt-4">
@@ -32,7 +39,12 @@
             class="fixed inset-0 transition-opacity bg-black/60 backdrop-blur-sm"></div>
         <div
             class="inline-block w-full max-w-lg p-8 my-8 overflow-hidden text-left align-middle transition-all transform glass-card rounded-3xl shadow-2xl relative">
-            <h3 class="text-2xl font-bold text-white mb-6">Edit Satker</h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white">Edit Satker</h3>
+                <button @click="showEditModal = false" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
             <form :action="'{{ url('satkers') }}/' + formData.id" method="POST" class="space-y-4">
                 @csrf @method('PUT')
                 <div>

@@ -14,6 +14,8 @@ class KendaraanTemplateExport implements WithHeadings, ShouldAutoSize
             'jenis_roda',
             'jenis_kendaraan',
             'nup',
+            'tahun_pembuatan',
+            'no_mesin',
             'no_rangka',
             'nopol',
             'kondisi',

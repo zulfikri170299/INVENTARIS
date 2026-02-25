@@ -42,13 +42,23 @@
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Seri (NUP)</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">NUP</label>
                         <input type="text" name="nup" placeholder="Contoh: 12345..."
+                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Tahun Pembuatan</label>
+                        <input type="text" name="tahun_pembuatan" placeholder="Contoh: 2024"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">No. Rangka</label>
                         <input type="text" name="no_rangka"
+                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Mesin</label>
+                        <input type="text" name="no_mesin"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
@@ -148,13 +158,23 @@
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Seri (NUP)</label>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">NUP</label>
                         <input type="text" name="nup" x-model="formData.nup"
+                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Tahun Pembuatan</label>
+                        <input type="text" name="tahun_pembuatan" x-model="formData.tahun_pembuatan"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">No. Rangka</label>
                         <input type="text" name="no_rangka" x-model="formData.no_rangka"
+                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">No. Mesin</label>
+                        <input type="text" name="no_mesin" x-model="formData.no_mesin"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
                     <div>
@@ -238,7 +258,8 @@
                             class="text-primary-300">jenis_roda</code> (R2/R4/R6/R8), <code
                             class="text-primary-300">bahan_bakar</code></li>
                     <li><span class="text-gray-300 font-medium">Opsional:</span> <code class="text-gray-300">nup</code>,
-                        <code class="text-gray-300">no_rangka</code>, <code class="text-gray-300">nopol</code>, <code
+                        <code class="text-gray-300">tahun_pembuatan</code>, <code
+                            class="text-gray-300">no_rangka</code>, <code class="text-gray-300">nopol</code>, <code
                             class="text-gray-300">kondisi</code>, <code class="text-gray-300">penanggung_jawab</code>,
                         <code class="text-gray-300">pangkat_nrp</code>, <code class="text-gray-300">keterangan</code>
                     </li>
@@ -324,7 +345,8 @@
                             <tr class="hover:bg-white/5 transition-colors">
                                 <td class="px-4 py-3">
                                     <div class="font-bold text-white" x-text="conflict.new.nopol"></div>
-                                    <div class="text-[10px] text-gray-500 font-mono" x-text="conflict.new.no_rangka">
+                                    <div class="text-[10px] text-gray-500 font-mono"
+                                        x-text="'Rangka: ' + conflict.new.no_rangka + ' | Thn: ' + conflict.new.tahun_pembuatan">
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">

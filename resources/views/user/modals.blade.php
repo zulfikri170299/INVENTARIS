@@ -38,15 +38,29 @@
                             @endforeach
                         </select>
                     </div>
-                    <div>
+                    <div x-data="{ show: false }" class="relative">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Password</label>
-                        <input type="password" name="password" required
-                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" name="password" required
+                                class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 focus:border-primary-500 transition-all pr-12">
+                            <button type="button" @click="show = !show"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none z-10">
+                                <i class="ph ph-eye text-xl" x-show="!show"></i>
+                                <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                            </button>
+                        </div>
                     </div>
-                    <div>
+                    <div x-data="{ show: false }" class="relative">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Konfirmasi Password</label>
-                        <input type="password" name="password_confirmation" required
-                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" name="password_confirmation" required
+                                class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 focus:border-primary-500 transition-all pr-12">
+                            <button type="button" @click="show = !show"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none z-10">
+                                <i class="ph ph-eye text-xl" x-show="!show"></i>
+                                <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4">
@@ -105,15 +119,29 @@
                         class="col-span-2 bg-yellow-500/10 text-yellow-400 p-4 rounded-xl border border-yellow-500/20 text-xs">
                         Kosongkan password jika tidak ingin mengganti.
                     </div>
-                    <div>
+                    <div x-data="{ show: false }" class="relative">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Password Baru</label>
-                        <input type="password" name="password"
-                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" name="password"
+                                class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 pr-12">
+                            <button type="button" @click="show = !show"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none z-10">
+                                <i class="ph ph-eye text-xl" x-show="!show"></i>
+                                <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                            </button>
+                        </div>
                     </div>
-                    <div>
+                    <div x-data="{ show: false }" class="relative">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Konfirmasi Password Baru</label>
-                        <input type="password" name="password_confirmation"
-                            class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" name="password_confirmation"
+                                class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 pr-12">
+                            <button type="button" @click="show = !show"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors focus:outline-none z-10">
+                                <i class="ph ph-eye text-xl" x-show="!show"></i>
+                                <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4">

@@ -9,8 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+use App\Traits\LogActivity;
+
 class AuthenticatedSessionController extends Controller
 {
+    use LogActivity;
+
     /**
      * Display the login view.
      */
@@ -28,6 +32,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $this->logActivity('Login', 'User berhasil login ke sistem', 'Auth');
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -36,6 +42,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->logActivity('Logout', 'User keluar dari sistem', 'Auth');
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

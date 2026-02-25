@@ -8,6 +8,7 @@ use App\Models\Kendaraan;
 use App\Models\Senjata;
 use App\Models\Alsus;
 use App\Models\Alsintor;
+use App\Models\Amunisi;
 
 class Satker extends Model
 {
@@ -36,5 +37,10 @@ class Satker extends Model
     public function alsintors()
     {
         return $this->hasMany(Alsintor::class);
+    }
+
+    public function amunisis()
+    {
+        return $this->hasMany(Amunisi::class);
     }
 }

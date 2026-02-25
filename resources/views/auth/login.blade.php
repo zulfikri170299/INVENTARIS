@@ -32,14 +32,20 @@
             </div>
 
             <!-- Password -->
-            <div class="relative group">
-                <input id="password" type="password" name="password" required autocomplete="current-password"
+            <div class="relative group" x-data="{ show: false }">
+                <input id="password" :type="show ? 'text' : 'password'" name="password" required
+                    autocomplete="current-password"
                     class="peer w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
                     placeholder="Password" />
                 <label for="password"
                     class="absolute left-4 -top-2.5 bg-[#131d33] px-1 text-sm text-gray-400 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-gray-200 peer-focus:text-sm">
                     Password
                 </label>
+                <button type="button" @click="show = !show"
+                    class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-200 transition-colors focus:outline-none z-10">
+                    <i class="ph ph-eye text-xl" x-show="!show"></i>
+                    <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                </button>
                 <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-400" />
             </div>
 

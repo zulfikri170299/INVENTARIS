@@ -51,9 +51,11 @@
                     <th>Satker</th>
                 @endif
                 <th>Jenis Kendaraan</th>
-                <th>No. Rangka</th>
-                <th>NUP</th>
                 <th>Plat Nomor</th>
+                <th>No. Rangka</th>
+                <th>No. Mesin</th>
+                <th>NUP</th>
+                <th>Tahun</th>
                 <th>Roda</th>
                 <th>Kondisi</th>
                 <th>BBM</th>
@@ -69,9 +71,11 @@
                         <td>{{ $item->satker->nama_satker ?? '-' }}</td>
                     @endif
                     <td>{{ $item->jenis_kendaraan }}</td>
-                    <td>{{ $item->no_rangka ?? '-' }}</td>
-                    <td>{{ $item->nup ?? '-' }}</td>
                     <td>{{ $item->nopol ?? '-' }}</td>
+                    <td>{{ $item->no_rangka ?? '-' }}</td>
+                    <td>{{ $item->no_mesin ?? '-' }}</td>
+                    <td>{{ $item->nup ?? '-' }}</td>
+                    <td>{{ $item->tahun_pembuatan ?? '-' }}</td>
                     <td>{{ $item->jenis_roda }}</td>
                     <td>{{ $item->kondisi }}</td>
                     <td>{{ $item->bahan_bakar ?? '-' }}</td>

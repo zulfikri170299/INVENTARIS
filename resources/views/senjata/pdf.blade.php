@@ -51,11 +51,12 @@
                     <th>Satker</th>
                 @endif
                 <th>Jenis Senpi</th>
-                <th>No. Seri (NUP)</th>
+                <th>NUP</th>
                 <th>No. Senpi</th>
                 <th>Kondisi</th>
                 <th>Penanggung Jawab</th>
                 <th>Pangkat/NRP</th>
+                <th>Status</th>
                 <th>Masa Berlaku SIMSA</th>
             </tr>
         </thead>
@@ -72,6 +73,7 @@
                     <td>{{ $item->kondisi }}</td>
                     <td>{{ $item->penanggung_jawab ?? '-' }}</td>
                     <td>{{ $item->nrp ?? '-' }}</td>
+                    <td>{{ $item->status_penyimpanan ?? '-' }}</td>
                     <td>{{ $item->masa_berlaku_simsa ? \Carbon\Carbon::parse($item->masa_berlaku_simsa)->format('d/m/Y') : '-' }}
                     </td>
                 </tr>
