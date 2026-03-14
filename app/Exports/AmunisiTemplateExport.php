@@ -10,10 +10,10 @@ class AmunisiTemplateExport implements WithHeadings, ShouldAutoSize
     public function headings(): array
     {
         return [
-            'jenis_amunisi',
-            'jumlah',
-            'status_penyimpanan',
-            'keterangan',
+            'JENIS AMUNISI',
+            'JUMLAH',
+            'STATUS PENYIMPANAN',
+            'KETERANGAN',
         ];
     }
 }

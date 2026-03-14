@@ -34,6 +34,7 @@
         showEditModal: false, 
         showImportModal: false,
         showConflictModal: false,
+        showTransferModal: false,
         loading: false,
         conflicts: [],
         validData: [],
@@ -109,115 +110,90 @@
         }
     }">
 
-        <!-- Action Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
+        <!-- Action & Filter Bar -->
+        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+            <!-- Left: Action Buttons -->
+            <div class="flex items-center gap-2">
                 <button @click="showAddModal = true"
-                    class="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
-                    <i class="ph ph-plus-circle mr-2 text-lg"></i>
-                    Tambah Data
+                    class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all shadow-lg shadow-primary-500/20 group flex items-center">
+                    <i class="ph ph-plus-circle text-lg mr-1.5 group-hover:rotate-90 transition-transform"></i>
+                    Tambah
                 </button>
-                <button @click="showImportModal = true"
-                    class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-semibold shadow-lg shadow-green-500/20 transition-all flex items-center">
-                    <i class="ph ph-file-arrow-up mr-2 text-lg"></i>
-                    Import Excel
-                </button>
+                
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false"
-                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition-all flex items-center">
-                        <i class="ph ph-export mr-2 text-lg"></i>
+                    <button @click="open = !open"
+                        class="btn-compact bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition-all flex items-center px-2">
+                        <i class="ph ph-export text-lg mr-1"></i>
                         Export
-                        <i class="ph ph-caret-down ml-2 text-sm transition-transform"
-                            :class="open ? 'rotate-180' : ''"></i>
+                        <i class="ph ph-caret-down ml-1 text-[10px]"></i>
                     </button>
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute left-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                        <a href="{{ route('kendaraan.export-pdf', request()->all()) }}"
-                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
-                            <i class="ph ph-file-pdf mr-3 text-red-500 text-lg"></i>
+                    <div x-show="open" @click.away="open = false"
+                        class="absolute left-0 mt-1 w-40 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-30 transition-all overflow-hidden"
+                        x-cloak>
+                        <a href="javascript:void(0)" onclick="safeDownload('{{ route('kendaraan.export-pdf', request()->all()) }}', 'laporan-kendaraan.pdf')"
+                            class="flex items-center px-3 py-2 text-[11px] text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-pdf mr-2 text-red-500 text-base"></i>
                             Cetak PDF
                         </a>
-                        <a href="{{ route('kendaraan.export-excel', request()->all()) }}"
-                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
-                            <i class="ph ph-file-xls mr-3 text-green-500 text-lg"></i>
+                        <a href="javascript:void(0)" onclick="safeDownload('{{ route('kendaraan.export-excel', request()->all()) }}', 'laporan-kendaraan.xlsx')"
+                            class="flex items-center px-3 py-2 text-[11px] text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-xls mr-2 text-green-500 text-base"></i>
                             Export Excel
                         </a>
                     </div>
                 </div>
+
+                <button @click="showImportModal = true"
+                    class="btn-compact bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition-all flex items-center px-2">
+                    <i class="ph ph-file-arrow-up text-lg mr-1"></i>
+                    Import
+                </button>
             </div>
 
-            <!-- Simple Search -->
-            <form action="{{ route('kendaraan.index') }}" method="GET" class="flex items-center space-x-2">
-                <div class="relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kendaraan..."
-                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-10 py-2.5 focus:ring-primary-500 focus:border-primary-500 w-64 transition-all">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-3 text-gray-500"></i>
-                </div>
-                @if(request('per_page'))
-                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-                @endif
-                <button type="submit"
-                    class="p-2.5 bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-700 transition-colors">
-                    <i class="ph ph-funnel text-xl"></i>
-                </button>
-            </form>
-        </div>
-
-        <!-- Filter Bar -->
-        <div class="glass-card p-6 rounded-2xl">
-            @php
-                $showSatkerFilter = !auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']);
-            @endphp
-            <form action="{{ route('kendaraan.index') }}" method="GET"
-                class="grid grid-cols-1 {{ $showSatkerFilter ? 'md:grid-cols-4' : 'md:grid-cols-3' }} gap-4">
+            <!-- Right: Filter Form -->
+            <form action="{{ route('kendaraan.index') }}" method="GET" class="flex flex-wrap items-center gap-2 flex-1 justify-end">
+                @php
+                    $showSatkerFilter = !auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']);
+                @endphp
+                
                 @if($showSatkerFilter)
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Satker</label>
-                        <select name="satker_id"
-                            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                            <option value="">Semua Satker</option>
-                            @foreach($satkers as $satker)
-                                <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
-                                    {{ $satker->nama_satker }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <select name="satker_id" onchange="this.form.submit()"
+                        class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[120px]">
+                        <option value="">Semua Satker</option>
+                        @foreach($satkers as $satker)
+                            <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
+                                {{ $satker->nama_satker }}
+                            </option>
+                        @endforeach
+                    </select>
                 @endif
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Kondisi</label>
-                    <select name="kondisi"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Kondisi</option>
-                        <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
-                        <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak
-                            Ringan</option>
-                        <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak
-                            Berat</option>
-                    </select>
+
+                <select name="kondisi" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[100px]">
+                    <option value="">Kondisi</option>
+                    <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
+                    <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                    <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
+                </select>
+
+                <select name="jenis_roda" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[100px]">
+                    <option value="">Roda</option>
+                    <option value="R2" {{ request('jenis_roda') == 'R2' ? 'selected' : '' }}>R2</option>
+                    <option value="R4" {{ request('jenis_roda') == 'R4' ? 'selected' : '' }}>R4</option>
+                    <option value="R6" {{ request('jenis_roda') == 'R6' ? 'selected' : '' }}>R6</option>
+                    <option value="R8" {{ request('jenis_roda') == 'R8' ? 'selected' : '' }}>R8</option>
+                </select>
+
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-[11px] rounded-lg pl-8 pr-3 py-1.5 focus:ring-primary-500 w-32 lg:w-40 transition-all">
+                    <i class="ph ph-magnifying-glass absolute left-2.5 top-2 text-gray-500 text-xs"></i>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Jenis Roda</label>
-                    <select name="jenis_roda"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Roda</option>
-                        <option value="R2" {{ request('jenis_roda') == 'R2' ? 'selected' : '' }}>R2</option>
-                        <option value="R4" {{ request('jenis_roda') == 'R4' ? 'selected' : '' }}>R4</option>
-                        <option value="R6" {{ request('jenis_roda') == 'R6' ? 'selected' : '' }}>R6</option>
-                        <option value="R8" {{ request('jenis_roda') == 'R8' ? 'selected' : '' }}>R8</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit"
-                        class="w-full px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
-                        Terapkan Filter
-                    </button>
-                </div>
+                
+                <a href="{{ route('kendaraan.index') }}" class="p-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-colors" title="Reset">
+                    <i class="ph ph-arrow-counter-clockwise"></i>
+                </a>
             </form>
         </div>
 
@@ -237,74 +213,77 @@
                     <span class="text-xs text-gray-500 ml-2">data per halaman</span>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table-excel">
+                    <thead>
                         <tr>
-                            <th class="px-2 py-4 w-10 text-center">NO</th>
+                            <th class="w-10 text-center">NO</th>
                             @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
-                                <th class="px-8 py-4">Satker</th>
+                                <th>Satker</th>
                             @endif
-                            <th class="px-8 py-4">Jenis Kendaraan</th>
-                            <th class="px-8 py-4">Plat Nomor</th>
-                            <th class="px-8 py-4">No. Rangka</th>
-                            <th class="px-8 py-4">No. Mesin</th>
-                            <th class="px-8 py-4">Tahun</th>
-                            <th class="px-8 py-4">Roda</th>
-                            <th class="px-8 py-4">Kondisi</th>
-                            <th class="px-8 py-4">Penanggung Jawab</th>
-                            <th class="px-8 py-4 text-right">Aksi</th>
+                            <th>Jenis/BBM</th>
+                            <th>Nopol</th>
+                            <th>No. Rangka/Mesin</th>
+                            <th>Tahun</th>
+                            <th>Roda</th>
+                            <th>Kondisi</th>
+                            <th>Penanggung Jawab</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
+                    <tbody class="divide-y divide-gray-800">
                         @forelse($kendaraans as $kendaraan)
-                            <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-2 py-4 text-center font-bold text-gray-500">
+                            <tr class="transition-colors">
+                                <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($kendaraans->firstItem() - 1) }}
                                 </td>
                                 @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                                    <td class="px-8 py-4 text-xs">{{ $kendaraan->satker->nama_satker ?? '-' }}</td>
+                                    <td>{{ $kendaraan->satker->nama_satker ?? '-' }}</td>
                                 @endif
-                                <td class="px-8 py-4">
-                                    <span class="font-medium text-gray-100">{{ $kendaraan->jenis_kendaraan }}</span>
-                                    <span class="block text-xs text-gray-500">{{ $kendaraan->bahan_bakar }}</span>
+                                <td>
+                                    <div class="font-bold text-gray-100">{{ $kendaraan->jenis_kendaraan }}</div>
+                                    <div class="text-[11px] text-gray-500">{{ $kendaraan->bahan_bakar }}</div>
                                 </td>
-                                <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->nopol ?? '-' }}</td>
-                                <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->no_rangka ?? '-' }}</td>
-                                <td class="px-8 py-4 font-mono text-xs">{{ $kendaraan->no_mesin ?? '-' }}</td>
-                                <td class="px-8 py-4 text-xs">{{ $kendaraan->tahun_pembuatan ?? '-' }}</td>
-                                <td class="px-8 py-4 text-xs font-bold text-gray-400">{{ $kendaraan->jenis_roda }}</td>
-                                <td class="px-8 py-4">
+                                <td class="font-mono font-bold">{{ $kendaraan->nopol ?? '-' }}</td>
+                                <td>
+                                    <div class="font-mono text-[11px]">{{ $kendaraan->no_rangka ?? '-' }}</div>
+                                    <div class="font-mono text-[11px] text-gray-500">{{ $kendaraan->no_mesin ?? '-' }}</div>
+                                </td>
+                                <td>{{ $kendaraan->tahun_pembuatan ?? '-' }}</td>
+                                <td class="font-bold text-gray-400">{{ $kendaraan->jenis_roda }}</td>
+                                <td>
                                     @php
-                                        $color = match ($kendaraan->kondisi) {
-                                            'Baik' => 'bg-green-500/10 text-green-400 ring-green-500/20',
-                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-400 ring-yellow-500/20',
-                                            default => 'bg-red-500/10 text-red-400 ring-red-500/20'
+                                        $condColor = match ($kendaraan->kondisi) {
+                                            'Baik' => 'bg-green-500/10 text-green-400 border-green-500/20',
+                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                                            default => 'bg-red-500/10 text-red-400 border-red-500/20'
                                         };
                                     @endphp
-                                    <span class="px-2 py-1 rounded-lg {{ $color }} text-xs font-bold ring-1">
+                                    <span class="badge-compact border {{ $condColor }}">
                                         {{ $kendaraan->kondisi }}
                                     </span>
                                 </td>
-                                <td class="px-8 py-4">
-                                    <span class="text-gray-100">{{ $kendaraan->penanggung_jawab ?? '-' }}</span>
-                                    <span class="block text-xs text-gray-500">{{ $kendaraan->nrp ?? '' }}</span>
+                                <td>
+                                    <div class="text-gray-100">{{ $kendaraan->penanggung_jawab ?? '-' }}</div>
+                                    <div class="text-[11px] text-gray-500">{{ $kendaraan->nrp ?? '' }}</div>
                                 </td>
-                                <td class="px-8 py-4 text-right">
-                                    <div class="flex justify-end space-x-2">
+                                <td class="text-right">
+                                    <div class="flex justify-end items-center space-x-1">
+                                        <button @click='formData = { ...@json($kendaraan) }; showTransferModal = true'
+                                            class="p-1.5 text-gray-400 hover:text-primary-400 hover:bg-primary-500/10 rounded" title="Kirim">
+                                            <i class="ph ph-paper-plane-tilt"></i>
+                                        </button>
                                         <button @click='openEdit(@json($kendaraan))'
-                                            class="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                            title="Edit">
-                                            <i class="ph ph-pencil-simple text-lg"></i>
+                                            class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded" title="Edit">
+                                            <i class="ph ph-pencil-simple"></i>
                                         </button>
                                         <form id="delete-form-{{ $kendaraan->id }}"
-                                            action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST">
+                                            action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST" class="inline">
                                             @csrf @method('DELETE')
                                             <button type="button"
                                                 onclick="confirmDelete('delete-form-{{ $kendaraan->id }}', 'data ini')"
-                                                class="p-2 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
-                                                title="Hapus">
-                                                <i class="ph ph-trash text-lg"></i>
+                                                class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded" title="Hapus">
+                                                <i class="ph ph-trash"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -312,8 +291,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 8 : 7 }}"
-                                    class="px-8 py-12 text-center text-gray-500">Tidak ada data ditemukan</td>
+                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 10 : 9 }}"
+                                    class="px-8 py-12 text-center text-gray-500 uppercase tracking-widest text-xs">Tidak ada data ditemukan</td>
                             </tr>
                         @endforelse
                     </tbody>

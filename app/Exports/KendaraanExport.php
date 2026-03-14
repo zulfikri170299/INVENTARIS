@@ -25,20 +25,20 @@ class KendaraanExport implements FromQuery, WithMapping, WithHeadings, ShouldAut
     public function headings(): array
     {
         return [
-            'No',
-            'Satker',
-            'Jenis Kendaraan',
-            'Plat Nomor',
-            'No Rangka',
-            'No Mesin',
+            'NO',
+            'SATKER',
+            'JENIS KENDARAAN',
+            'PLAT NOMOR',
+            'NO RANGKA',
+            'NO MESIN',
             'NUP',
-            'Tahun Pembuatan',
-            'Roda',
-            'Kondisi',
-            'Bahan Bakar',
-            'Penanggung Jawab',
+            'TAHUN PEMBUATAN',
+            'RODA',
+            'KONDISI',
+            'BAHAN BAKAR',
+            'PENANGGUNG JAWAB',
             'NRP',
-            'Keterangan',
+            'KETERANGAN',
         ];
     }
 

@@ -4,103 +4,97 @@
     </x-slot>
 
     <div class="space-y-6 animate-fade-in">
-        <!-- Action Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 class="text-xl font-bold text-gray-100 flex items-center">
-                <i class="ph ph-clock-counter-clockwise mr-3 text-primary-500"></i>
-                Log Transaksi Amunisi
-            </h2>
+        <!-- Action & Filter Bar -->
+        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in text-xs">
+            <!-- Left: Title -->
+            <div class="flex items-center gap-2">
+                <i class="ph ph-clock-counter-clockwise text-primary-500 text-lg"></i>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Log Amunisi</h3>
+            </div>
 
-            <form action="{{ route('amunisi-history.index') }}" method="GET" class="flex items-center space-x-2">
-                <div class="relative">
-                    <input type="text" name="search" value="{{ request('search') }}"
-                        placeholder="Cari personel/jenis..."
-                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-10 py-2.5 focus:ring-primary-500 focus:border-primary-500 w-64 transition-all">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-3 text-gray-500"></i>
+            <!-- Right: Filter Form -->
+            <form action="{{ route('amunisi-history.index') }}" method="GET" class="flex flex-wrap items-center gap-2 flex-1 justify-end">
+                @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
+                    <select name="satker_id" onchange="this.form.submit()"
+                        class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[120px]">
+                        <option value="">Semua Satker</option>
+                        @foreach($satkers as $satker)
+                            <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
+                                {{ $satker->nama_satker }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
+
+                <div class="flex items-center gap-1.5">
+                    <span class="text-gray-500 text-[10px] uppercase font-bold">Periode:</span>
+                    <input type="date" name="start_date" value="{{ request('start_date') }}"
+                        class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1 focus:ring-primary-500">
+                    <span class="text-gray-600">-</span>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}"
+                        class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1 focus:ring-primary-500">
                 </div>
-                <button type="submit"
-                    class="p-2.5 bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-700 transition-colors">
-                    <i class="ph ph-funnel text-xl"></i>
-                </button>
+
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-[11px] rounded-lg pl-8 pr-3 py-1.5 focus:ring-primary-500 w-32 lg:w-40 transition-all">
+                    <i class="ph ph-magnifying-glass absolute left-2.5 top-2 text-gray-500 text-xs"></i>
+                </div>
+                
+                <a href="{{ route('amunisi-history.index') }}" class="p-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-colors" title="Reset">
+                    <i class="ph ph-arrow-counter-clockwise"></i>
+                </a>
             </form>
         </div>
 
-        <!-- Filter Bar -->
-        @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
-            <div class="glass-card p-6 rounded-2xl">
-                <form action="{{ route('amunisi-history.index') }}" method="GET"
-                    class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Satker</label>
-                        <select name="satker_id"
-                            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                            <option value="">Semua Satker</option>
-                            @foreach($satkers as $satker)
-                                <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
-                                    {{ $satker->nama_satker }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit"
-                            class="w-full px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
-                            Filter
-                        </button>
-                    </div>
-                </form>
-            </div>
-        @endif
-
         <!-- Table -->
         <div class="glass-card rounded-3xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table-excel">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-4">Tanggal</th>
+                            <th class="w-32">Tanggal</th>
                             @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
-                                <th class="px-6 py-4">Satker</th>
+                                <th>Satker</th>
                             @endif
-                            <th class="px-6 py-4">Personel</th>
-                            <th class="px-6 py-4">Jenis Amunisi</th>
-                            <th class="px-6 py-4 text-center">Jumlah</th>
-                            <th class="px-6 py-4">Keterangan</th>
+                            <th>Personel</th>
+                            <th>Jenis Amunisi</th>
+                            <th class="w-24 text-center">Jumlah</th>
+                            <th>Keterangan</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
+                    <tbody class="divide-y divide-gray-800">
                         @forelse($histories as $history)
-                            <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                            <tr class="transition-colors">
+                                <td class="font-mono text-[11px] text-gray-400">
                                     {{ \Carbon\Carbon::parse($history->tanggal)->format('d/m/Y') }}
                                 </td>
                                 @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
-                                    <td class="px-6 py-4">{{ $history->satker->nama_satker ?? '-' }}</td>
+                                    <td class="text-[10px]">{{ $history->satker->nama_satker ?? '-' }}</td>
                                 @endif
-                                <td class="px-6 py-4">
-                                    <div class="font-medium text-gray-100">{{ $history->nama_personel }}</div>
-                                    <div class="text-xs text-gray-500">{{ $history->pangkat_nrp }}</div>
+                                <td>
+                                    <div class="font-bold text-gray-100">{{ $history->nama_personel }}</div>
+                                    <div class="text-[9px] text-gray-500 uppercase">{{ $history->pangkat_nrp }}</div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="px-2 py-1 bg-orange-500/10 text-orange-400 rounded-lg text-xs font-bold ring-1 ring-orange-500/20">
+                                <td>
+                                    <span class="badge-compact border border-orange-500/20 bg-orange-500/10 text-orange-400">
                                         {{ $history->jenis_amunisi }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    @if($history->jumlah > 0)
-                                        <span class="text-red-400 font-bold">-{{ $history->jumlah }}</span>
+                                <td class="text-center font-bold">
+                                    @if($history->jumlah < 0)
+                                        <span class="text-red-400">{{ $history->jumlah }}</span>
                                     @else
-                                        <span class="text-green-400 font-bold">+{{ abs($history->jumlah) }}</span>
+                                        <span class="text-green-400">+{{ $history->jumlah }}</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-xs text-gray-400 italic">
+                                <td class="text-[10px] text-gray-400 italic">
                                     {{ $history->keterangan }}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">
+                                <td colspan="6" class="px-6 py-12 text-center uppercase tracking-widest text-xs text-gray-500 font-bold">
                                     Belum ada data riwayat amunisi.
                                 </td>
                             </tr>

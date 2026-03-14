@@ -1,270 +1,410 @@
 <x-app-layout>
     <x-slot name="header">
-        Statistik Inventaris
+        @if(auth()->user()->satker)
+            {{ auth()->user()->satker->nama_satker }}
+        @else
+            {{ strtoupper(auth()->user()->role) }} - LOGISTIK
+        @endif
     </x-slot>
 
-    <div class="space-y-8 animate-fade-in">
+    <div class="space-y-4 lg:space-y-6 animate-fade-in">
         <!-- Dashboard Welcome -->
-        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-3xl relative overflow-hidden shadow-xl">
-            <div class="absolute top-0 right-0 -m-8 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div
+            class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 lg:p-8 rounded-xl lg:rounded-2xl relative overflow-hidden shadow-lg mb-4 lg:mb-8">
+            <div class="absolute top-0 right-0 -m-8 w-48 lg:w-64 h-48 lg:h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div class="relative z-10">
-                <h3 class="text-3xl font-bold text-white mb-2">Selamat Datang, {{ Auth::user()->name }}! 👋</h3>
-                <p class="text-white/90 max-w-2xl text-lg">Kelola aset dan inventaris alat dengan mudah dan cepat
-                    melalui dashboard terpadu ini.</p>
+                <h3 class="text-xl lg:text-3xl font-bold text-white mb-2">Selamat Datang,
+                    {{ Auth::user()->name }}! 👋
+                </h3>
+                <p class="text-white/90 max-w-2xl text-xs lg:text-base">
+                    @if(auth()->user()->satker)
+                        {{ auth()->user()->satker->nama_satker }} —
+                    @endif
+                    Kelola aset dan inventaris alat dengan mudah dan cepat melalui dashboard terpadu ini.
+                </p>
             </div>
         </div>
 
         <!-- Stats Grid - Main Totals -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-6">
             <!-- Card 1 - Senjata -->
             <a href="{{ route('senjata.index') }}"
-                class="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-2xl hover:scale-[1.05] transition-all transform duration-300 shadow-lg hover:shadow-xl">
-                <div class="flex items-center justify-between mb-4">
+                class="bg-gradient-to-br from-blue-400 to-blue-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg group">
+                <div class="flex items-center justify-between mb-2 lg:mb-3">
                     <div
-                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-shield-check text-2xl"></i>
+                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm group-hover:bg-white/30 transition-all">
+                        <i class="ph ph-shield-check text-lg lg:text-xl"></i>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <i class="ph ph-arrow-right text-white"></i>
+                    <div
+                        class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full group-hover:bg-white/30 transition-all">
+                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
                     </div>
                 </div>
-                <h4 class="text-white/80 font-medium text-sm">Total Senjata</h4>
-                <p class="text-4xl font-bold text-white mt-1">{{ $totalSenjata }}</p>
+                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Senjata</h4>
+                <div class="flex items-baseline justify-between mt-0.5 lg:mt-1">
+                    <p class="text-xl lg:text-3xl font-bold text-white leading-none">{{ $totalSenjata }}</p>
+                    <div class="text-right flex flex-col items-end leading-tight">
+                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">P:
+                            <span class="text-white text-[10px] lg:text-xs">{{ $senjataPanjang }}</span></span>
+                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">D:
+                            <span class="text-white text-[10px] lg:text-xs">{{ $senjataPendek }}</span></span>
+                    </div>
+                </div>
             </a>
 
-            <!-- Card 2 - Kendaraan -->
+            <!-- Card 2 - Amunisi -->
+            <a href="{{ route('amunisi.index') }}"
+                class="bg-gradient-to-br from-red-400 to-red-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
+                <div class="flex items-center justify-between mb-2 lg:mb-3">
+                    <div
+                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
+                        <i class="ph ph-target text-lg lg:text-xl"></i>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
+                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
+                    </div>
+                </div>
+                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Amunisi</h4>
+                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">
+                    {{ number_format($totalAmunisi, 0, ',', '.') }}
+                </p>
+            </a>
+
+            <!-- Card 3 - Kendaraan -->
             <a href="{{ route('kendaraan.index') }}"
-                class="bg-gradient-to-br from-purple-400 to-purple-600 p-6 rounded-2xl hover:scale-[1.05] transition-all transform duration-300 shadow-lg hover:shadow-xl">
-                <div class="flex items-center justify-between mb-4">
+                class="bg-gradient-to-br from-purple-400 to-purple-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg group">
+                <div class="flex items-center justify-between mb-2 lg:mb-3">
                     <div
-                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-truck text-2xl"></i>
+                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm group-hover:bg-white/30 transition-all">
+                        <i class="ph ph-truck text-lg lg:text-xl"></i>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <i class="ph ph-arrow-right text-white"></i>
+                    <div
+                        class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full group-hover:bg-white/30 transition-all">
+                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
                     </div>
                 </div>
-                <h4 class="text-white/80 font-medium text-sm">Total Kendaraan</h4>
-                <p class="text-4xl font-bold text-white mt-1">{{ $totalKendaraan }}</p>
+                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Kendaraan</h4>
+                <div class="flex items-baseline justify-between mt-0.5 lg:mt-1">
+                    <p class="text-xl lg:text-3xl font-bold text-white leading-none">{{ $totalKendaraan }}</p>
+                    <div class="grid grid-cols-2 gap-x-1.5 lg:gap-x-2 text-right leading-tight">
+                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">R2:
+                            <span class="text-white text-[10px] lg:text-xs">{{ $kendaraanR2 }}</span></span>
+                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">R4:
+                            <span class="text-white text-[10px] lg:text-xs">{{ $kendaraanR4 }}</span></span>
+                    </div>
+                </div>
             </a>
 
-            <!-- Card 3 - Alsus -->
+            <!-- Card 4 - Alsus -->
             <a href="{{ route('alsus.index') }}"
-                class="bg-gradient-to-br from-orange-400 to-orange-600 p-6 rounded-2xl hover:scale-[1.05] transition-all transform duration-300 shadow-lg hover:shadow-xl">
-                <div class="flex items-center justify-between mb-4">
+                class="bg-gradient-to-br from-orange-400 to-orange-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
+                <div class="flex items-center justify-between mb-2 lg:mb-3">
                     <div
-                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-wrench text-2xl"></i>
+                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
+                        <i class="ph ph-wrench text-lg lg:text-xl"></i>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <i class="ph ph-arrow-right text-white"></i>
+                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
+                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
                     </div>
                 </div>
-                <h4 class="text-white/80 font-medium text-sm">Alat Khusus</h4>
-                <p class="text-4xl font-bold text-white mt-1">{{ $totalAlsus }}</p>
+                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Alat Khusus</h4>
+                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">{{ $totalAlsus }}</p>
             </a>
 
-            <!-- Card 4 - Alsintor -->
+            <!-- Card 5 - Alsintor -->
             <a href="{{ route('alsintor.index') }}"
-                class="bg-gradient-to-br from-green-400 to-green-600 p-6 rounded-2xl hover:scale-[1.05] transition-all transform duration-300 shadow-lg hover:shadow-xl">
-                <div class="flex items-center justify-between mb-4">
+                class="bg-gradient-to-br from-green-400 to-green-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
+                <div class="flex items-center justify-between mb-2 lg:mb-3">
                     <div
-                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-farm text-2xl"></i>
+                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
+                        <i class="ph ph-farm text-lg lg:text-xl"></i>
                     </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <i class="ph ph-arrow-right text-white"></i>
+                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
+                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
                     </div>
                 </div>
-                <h4 class="text-white/80 font-medium text-sm">Alsintor</h4>
-                <p class="text-4xl font-bold text-white mt-1">{{ $totalAlsintor }}</p>
+                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Alsintor</h4>
+                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">{{ $totalAlsintor }}</p>
             </a>
         </div>
 
-        <!-- Kendaraan Details by Roda -->
-        <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-200">
-            <h4 class="font-bold text-xl text-gray-800 mb-4 flex items-center">
-                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mr-3">
-                    <i class="ph ph-truck text-purple-600 text-xl"></i>
-                </div>
-                Rincian Kendaraan Berdasarkan Roda
-            </h4>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div
-                    class="bg-gradient-to-br from-pink-50 to-pink-100 p-5 rounded-xl border-2 border-pink-200 hover:shadow-md transition-shadow">
-                    <div class="text-xs font-semibold text-pink-600 uppercase mb-2">Roda 2 (R2)</div>
-                    <div class="text-3xl font-bold text-pink-700">{{ $kendaraanR2 }}</div>
-                    <i class="ph ph-motorcycle text-pink-300 text-4xl absolute right-4 bottom-4 opacity-20"></i>
-                </div>
-                <div
-                    class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 hover:shadow-md transition-shadow">
-                    <div class="text-xs font-semibold text-blue-600 uppercase mb-2">Roda 4 (R4)</div>
-                    <div class="text-3xl font-bold text-blue-700">{{ $kendaraanR4 }}</div>
-                    <i class="ph ph-car text-blue-300 text-4xl absolute right-4 bottom-4 opacity-20"></i>
-                </div>
-                <div
-                    class="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border-2 border-purple-200 hover:shadow-md transition-shadow">
-                    <div class="text-xs font-semibold text-purple-600 uppercase mb-2">Roda 6 (R6)</div>
-                    <div class="text-3xl font-bold text-purple-700">{{ $kendaraanR6 }}</div>
-                    <i class="ph ph-truck text-purple-300 text-4xl absolute right-4 bottom-4 opacity-20"></i>
-                </div>
-                <div
-                    class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-5 rounded-xl border-2 border-indigo-200 hover:shadow-md transition-shadow">
-                    <div class="text-xs font-semibold text-indigo-600 uppercase mb-2">Roda 8 (R8)</div>
-                    <div class="text-3xl font-bold text-indigo-700">{{ $kendaraanR8 }}</div>
-                    <i class="ph ph-truck-trailer text-indigo-300 text-4xl absolute right-4 bottom-4 opacity-20"></i>
-                </div>
-            </div>
-        </div>
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 mt-4 lg:mt-8">
 
-        <!-- Senjata Details -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Senjata by Laras -->
-            <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-200">
-                <h4 class="font-bold text-xl text-gray-800 mb-4 flex items-center">
-                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-3">
-                        <i class="ph ph-shield-check text-blue-600 text-xl"></i>
-                    </div>
-                    Senjata Berdasarkan Laras
-                </h4>
-                <div class="space-y-3">
-                    <div
-                        class="bg-gradient-to-r from-cyan-50 to-cyan-100 p-5 rounded-xl border-2 border-cyan-200 flex justify-between items-center hover:shadow-md transition-shadow">
-                        <div>
-                            <div class="text-xs font-semibold text-cyan-600 uppercase">Laras Panjang</div>
-                            <div class="text-3xl font-bold text-cyan-700 mt-1">{{ $senjataPanjang }}</div>
-                        </div>
-                        <div class="w-16 h-16 bg-cyan-200/50 rounded-full flex items-center justify-center">
-                            <i class="ph ph-crosshair text-4xl text-cyan-600"></i>
-                        </div>
-                    </div>
-                    <div
-                        class="bg-gradient-to-r from-teal-50 to-teal-100 p-5 rounded-xl border-2 border-teal-200 flex justify-between items-center hover:shadow-md transition-shadow">
-                        <div>
-                            <div class="text-xs font-semibold text-teal-600 uppercase">Laras Pendek</div>
-                            <div class="text-3xl font-bold text-teal-700 mt-1">{{ $senjataPendek }}</div>
-                        </div>
-                        <div class="w-16 h-16 bg-teal-200/50 rounded-full flex items-center justify-center">
-                            <i class="ph ph-target text-4xl text-teal-600"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Senjata by Status Penyimpanan -->
-            <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-200">
-                <h4 class="font-bold text-xl text-gray-800 mb-4 flex items-center">
-                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mr-3">
-                        <i class="ph ph-package text-green-600 text-xl"></i>
-                    </div>
-                    Status Penyimpanan Senjata
-                </h4>
-                <div class="space-y-3">
-                    <div
-                        class="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 flex justify-between items-center hover:shadow-md transition-shadow">
-                        <div>
-                            <div class="text-xs font-semibold text-blue-600 uppercase">Di Gudang</div>
-                            <div class="text-3xl font-bold text-blue-700 mt-1">{{ $senjataGudang }}</div>
-                        </div>
-                        <div class="w-16 h-16 bg-blue-200/50 rounded-full flex items-center justify-center">
-                            <i class="ph ph-warehouse text-4xl text-blue-600"></i>
-                        </div>
-                    </div>
-                    <div
-                        class="bg-gradient-to-r from-emerald-50 to-emerald-100 p-5 rounded-xl border-2 border-emerald-200 flex justify-between items-center hover:shadow-md transition-shadow">
-                        <div>
-                            <div class="text-xs font-semibold text-emerald-600 uppercase">Pegang Personel</div>
-                            <div class="text-3xl font-bold text-emerald-700 mt-1">{{ $senjataPersonel }}</div>
-                        </div>
-                        <div class="w-16 h-16 bg-emerald-200/50 rounded-full flex items-center justify-center">
-                            <i class="ph ph-user-circle text-4xl text-emerald-600"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SIMSA Monitoring -->
-        <div class="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-200">
+            <!-- SIMSA Chart -->
             <div
-                class="px-8 py-6 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-orange-200 flex items-center justify-between">
-                <h4 class="font-bold text-xl text-gray-800 flex items-center">
-                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mr-3">
-                        <i class="ph ph-warning-circle text-orange-600 text-xl"></i>
-                    </div>
-                    Monitoring Masa Berlaku SIMSA
-                </h4>
+                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all duration-500">
+                </div>
+                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
+                    <h4
+                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-orange-100">
+                        <div
+                            class="w-6 lg:w-8 h-6 lg:h-8 bg-orange-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-orange-500/20">
+                            <i class="ph ph-warning-circle text-orange-400 text-xs lg:text-xl"></i>
+                        </div>
+                        SIMSA (Habis Masa)
+                    </h4>
+                    <a href="{{ route('senjata.index') }}"
+                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                        title="Lihat Data Sumber">
+                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
+                    </a>
+                </div>
+                <div class="relative h-24 lg:h-48 z-10">
+                    <canvas id="simsaChart"></canvas>
+                </div>
             </div>
 
-            @if($simsaExpired->count() > 0 || $simsaNearExpiry->count() > 0)
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
-                            @if(in_array(auth()->user()->role, ['Super Admin', 'Pimpinan']))
-                                <th class="px-8 py-4 font-semibold">Satker</th>
-                            @endif
-                            <th class="px-8 py-4 font-semibold">Jenis Senpi</th>
-                            <th class="px-8 py-4 font-semibold">Penanggung Jawab</th>
-                            <th class="px-8 py-4 font-semibold">PANGKAT/NRP</th>
-                            <th class="px-8 py-4 font-semibold">Masa Berlaku</th>
-                            <th class="px-8 py-4 font-semibold">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
-                            @foreach($simsaExpired as $item)
-                                <tr class="hover:bg-red-50 transition-colors bg-red-50/50">
-                                    @if(in_array(auth()->user()->role, ['Super Admin', 'Pimpinan']))
-                                        <td class="px-8 py-4 text-xs">{{ $item->satker->nama_satker ?? '-' }}</td>
-                                    @endif
-                                    <td class="px-8 py-4 font-semibold text-gray-900">{{ $item->jenis_senpi }}</td>
-                                    <td class="px-8 py-4">{{ $item->penanggung_jawab ?? '-' }}</td>
-                                    <td class="px-8 py-4 text-xs font-mono text-gray-600">{{ $item->nrp ?? '-' }}</td>
-                                    <td class="px-8 py-4 text-red-600 font-bold">
-                                        {{ \Carbon\Carbon::parse($item->masa_berlaku_simsa)->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-8 py-4">
-                                        <span
-                                            class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200">
-                                            <i class="ph ph-x-circle mr-1"></i>HABIS
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
+            <!-- Penghapusan Chart -->
+            <div
+                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-red-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-all duration-500">
+                </div>
+                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
+                    <h4
+                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-red-100">
+                        <div
+                            class="w-6 lg:w-8 h-6 lg:h-8 bg-red-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-red-500/20">
+                            <i class="ph ph-trash text-red-400 text-xs lg:text-xl"></i>
+                        </div>
+                        Penghapusan
+                    </h4>
+                    <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penghapusan']) }}"
+                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                        title="Lihat Data Sumber">
+                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
+                    </a>
+                </div>
+                <div class="relative h-24 lg:h-48 z-10">
+                    <canvas id="penghapusanChart"></canvas>
+                </div>
+            </div>
 
-                            @foreach($simsaNearExpiry as $item)
-                                @php
-                                    $daysLeft = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($item->masa_berlaku_simsa), false);
-                                @endphp
-                                <tr class="hover:bg-yellow-50 transition-colors bg-yellow-50/50">
-                                    @if(in_array(auth()->user()->role, ['Super Admin', 'Pimpinan']))
-                                        <td class="px-8 py-4 text-xs">{{ $item->satker->nama_satker ?? '-' }}</td>
-                                    @endif
-                                    <td class="px-8 py-4 font-semibold text-gray-900">{{ $item->jenis_senpi }}</td>
-                                    <td class="px-8 py-4">{{ $item->penanggung_jawab ?? '-' }}</td>
-                                    <td class="px-8 py-4 text-xs font-mono text-gray-600">{{ $item->nrp ?? '-' }}</td>
-                                    <td class="px-8 py-4 text-amber-600 font-bold">
-                                        {{ \Carbon\Carbon::parse($item->masa_berlaku_simsa)->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-8 py-4">
-                                        <span
-                                            class="px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200">
-                                            <i class="ph ph-warning mr-1"></i>{{ ceil($daysLeft) }} HARI LAGI
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            <!-- Penetapan Chart -->
+            <div
+                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
+                <div
+                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all duration-500">
                 </div>
-            @else
-                <div class="px-8 py-16 text-center bg-gradient-to-b from-green-50 to-emerald-50">
-                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="ph ph-check-circle text-5xl text-green-600"></i>
-                    </div>
-                    <p class="text-gray-600 font-medium text-lg">Semua SIMSA masih dalam masa berlaku yang aman</p>
-                    <p class="text-gray-500 text-sm mt-2">Tidak ada senjata yang memerlukan perhatian khusus</p>
+                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
+                    <h4
+                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-blue-100">
+                        <div
+                            class="w-6 lg:w-8 h-6 lg:h-8 bg-blue-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-blue-500/20">
+                            <i class="ph ph-certificate text-blue-400 text-xs lg:text-xl"></i>
+                        </div>
+                        Penetapan Status
+                    </h4>
+                    <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penetapan_status']) }}"
+                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                        title="Lihat Data Sumber">
+                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
+                    </a>
                 </div>
-            @endif
+                <div class="relative h-24 lg:h-48 z-10">
+                    <canvas id="penetapanChart"></canvas>
+                </div>
+            </div>
         </div>
+
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Common plugin to draw text in center of doughnut
+                const centerTextPlugin = {
+                    id: 'centerText',
+                    beforeDraw: function (chart) {
+                        if (chart.config.options.elements.center) {
+                            var ctx = chart.ctx;
+                            var centerConfig = chart.config.options.elements.center;
+                            var fontStyle = centerConfig.fontStyle || 'Outfit';
+                            var txt = centerConfig.text;
+                            var color = centerConfig.color || '#f1f5f9';
+                            var sidePadding = centerConfig.sidePadding || 20;
+                            var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
+                            ctx.font = "bold 30px " + fontStyle;
+                            var stringWidth = ctx.measureText(txt).width;
+                            var elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
+                            var widthRatio = elementWidth / stringWidth;
+                            var newFontSize = Math.floor(30 * widthRatio);
+                            var elementHeight = (chart.innerRadius * 2);
+                            var fontSizeToUse = Math.min(newFontSize, elementHeight, 40);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            var centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+                            var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+                            ctx.font = "bold " + fontSizeToUse + "px " + fontStyle;
+                            ctx.fillStyle = color;
+                            ctx.fillText(txt, centerX, centerY);
+                        }
+                    }
+                };
+
+                // SIMSA Chart
+                new Chart(document.getElementById('simsaChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Habis', 'Hampir', 'Berlaku'],
+                        datasets: [{
+                            data: [{{ $simsaExpiredCount }}, {{ $simsaNearExpiryCount }}, {{ $simsaSafeCount }}],
+                            backgroundColor: ['#ef4444', '#facc15', '#22c55e'],
+                            hoverOffset: 12,
+                            borderWidth: 2,
+                            borderColor: '#1e293b'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    color: '#f8fafc',
+                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: 'Outfit', size: 11 },
+                                bodyFont: { family: 'Outfit', size: 10 },
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (context) {
+                                        return ' ' + context.label + ': ' + context.raw + ' Pucuk';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '75%',
+                        elements: {
+                            center: {
+                                text: '{{ $totalSimsa }}',
+                                color: '#f1f5f9'
+                            }
+                        }
+                    },
+                    plugins: [centerTextPlugin]
+                });
+
+                // Penghapusan Chart
+                new Chart(document.getElementById('penghapusanChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Diajukan', 'Proses', 'Revisi', 'Selesai'],
+                        datasets: [{
+                            data: [
+                                {{ $penghapusanCounts['diajukan'] + $penghapusanCounts['diterima'] }},
+                                {{ $penghapusanCounts['diproses'] + $penghapusanCounts['naik_ke_kapolda'] + $penghapusanCounts['ditandatangani'] }},
+                                {{ $penghapusanCounts['dikembalikan'] }},
+                                {{ $penghapusanCounts['selesai'] }}
+                            ],
+                            backgroundColor: ['#3b82f6', '#a855f7', '#ef4444', '#22c55e'],
+                            hoverOffset: 12,
+                            borderWidth: 2,
+                            borderColor: '#1e293b'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    color: '#f8fafc',
+                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: 'Outfit', size: 11 },
+                                bodyFont: { family: 'Outfit', size: 10 },
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (context) {
+                                        return ' ' + context.label + ': ' + context.raw + ' Berkas';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '75%',
+                        elements: {
+                            center: {
+                                text: '{{ $totalPenghapusan }}',
+                                color: '#f1f5f9'
+                            }
+                        }
+                    },
+                    plugins: [centerTextPlugin]
+                });
+
+                // Penetapan Status Chart
+                new Chart(document.getElementById('penetapanChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Diajukan', 'Proses', 'Revisi', 'Selesai'],
+                        datasets: [{
+                            data: [
+                                {{ $penetapanCounts['diajukan'] + $penetapanCounts['diterima'] }},
+                                {{ $penetapanCounts['diproses'] + $penetapanCounts['naik_ke_kapolda'] + $penetapanCounts['ditandatangani'] }},
+                                {{ $penetapanCounts['dikembalikan'] }},
+                                {{ $penetapanCounts['selesai'] }}
+                            ],
+                            backgroundColor: ['#3b82f6', '#a855f7', '#ef4444', '#22c55e'],
+                            hoverOffset: 12,
+                            borderWidth: 2,
+                            borderColor: '#1e293b'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    color: '#f8fafc',
+                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleFont: { family: 'Outfit', size: 11 },
+                                bodyFont: { family: 'Outfit', size: 10 },
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (context) {
+                                        return ' ' + context.label + ': ' + context.raw + ' Berkas';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '75%',
+                        elements: {
+                            center: {
+                                text: '{{ $totalPenetapan }}',
+                                color: '#f1f5f9'
+                            }
+                        }
+                    },
+                    plugins: [centerTextPlugin]
+                });
+            });
+        </script>
+
     </div>
 </x-app-layout>

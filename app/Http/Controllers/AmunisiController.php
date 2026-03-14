@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Amunisi;
 use App\Models\Satker;
+use App\Models\AmunisiHistory;
 use App\Imports\AmunisiImport;
 use App\Exports\AmunisiTemplateExport;
 use App\Exports\AmunisiExport;
@@ -20,7 +21,7 @@ class AmunisiController extends Controller
     {
         $query = Amunisi::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -41,8 +42,9 @@ class AmunisiController extends Controller
         $perPage = $request->input('per_page', 10);
         $amunisis = $query->latest()->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
+        $jenis_amunisi_list = Amunisi::distinct()->pluck('jenis_amunisi');
 
-        return view('amunisi.index', compact('amunisis', 'satkers'));
+        return view('amunisi.index', compact('amunisis', 'satkers', 'jenis_amunisi_list'));
     }
 
     public function store(Request $request)
@@ -56,7 +58,7 @@ class AmunisiController extends Controller
 
         $validated['status_penyimpanan'] = 'Gudang';
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -80,7 +82,7 @@ class AmunisiController extends Controller
 
         $validated['status_penyimpanan'] = 'Gudang';
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -186,7 +188,7 @@ class AmunisiController extends Controller
         $query = Amunisi::with('satker');
         $satker = null;
 
-        if (auth()->user()->satker_id) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $satkerId = auth()->user()->satker_id;
             $query->where('satker_id', $satkerId);
             $satker = Satker::find($satkerId);
@@ -210,7 +212,7 @@ class AmunisiController extends Controller
     {
         $query = Amunisi::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -232,5 +234,67 @@ class AmunisiController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new AmunisiTemplateExport, 'format-impor-amunisi.xlsx');
+    }
+
+    public function transfer(Request $request, $id)
+    {
+        $amunisi = Amunisi::findOrFail($id);
+        $request->validate([
+            'satker_id' => 'required|exists:satkers,id',
+            'jumlah_transfer' => 'required|integer|min:1|max:' . $amunisi->jumlah,
+        ]);
+
+        $oldSatkerId = $amunisi->satker_id;
+        $oldSatkerNama = $amunisi->satker->nama_satker ?? 'Satker Lama';
+        $newSatkerId = $request->satker_id;
+        $newSatkerNama = \App\Models\Satker::findOrFail($newSatkerId)->nama_satker;
+        $jumlah = $request->jumlah_transfer;
+
+        // Deduct from current amunisi
+        $amunisi->decrement('jumlah', $jumlah);
+
+        // Record History for Sender (OUT)
+        AmunisiHistory::create([
+            'satker_id' => $oldSatkerId,
+            'nama_personel' => '-',
+            'pangkat_nrp' => '-',
+            'jenis_amunisi' => $amunisi->jenis_amunisi,
+            'jumlah' => -$jumlah, // Negative for out
+            'tanggal' => now(),
+            'keterangan' => 'Dikirim ke ' . $newSatkerNama,
+        ]);
+
+        // Add to new amunisi (or create)
+        $targetAmunisi = Amunisi::where('satker_id', $newSatkerId)
+            ->where('jenis_amunisi', $amunisi->jenis_amunisi)
+            ->where('status_penyimpanan', 'Gudang')
+            ->first();
+
+        if ($targetAmunisi) {
+            $targetAmunisi->increment('jumlah', $jumlah);
+        } else {
+            Amunisi::create([
+                'satker_id' => $newSatkerId,
+                'jenis_amunisi' => $amunisi->jenis_amunisi,
+                'jumlah' => $jumlah,
+                'status_penyimpanan' => 'Gudang',
+                'keterangan' => 'Mutasi dari ' . $oldSatkerNama,
+            ]);
+        }
+
+        // Record History for Receiver (IN)
+        AmunisiHistory::create([
+            'satker_id' => $newSatkerId,
+            'nama_personel' => '-',
+            'pangkat_nrp' => '-',
+            'jenis_amunisi' => $amunisi->jenis_amunisi,
+            'jumlah' => $jumlah, // Positive for in
+            'tanggal' => now(),
+            'keterangan' => 'Diterima dari ' . $oldSatkerNama,
+        ]);
+
+        $this->logActivity('Mutasi Amunisi', "Memindahkan $jumlah butir amunisi " . $amunisi->jenis_amunisi . " dari $oldSatkerNama ke $newSatkerNama", 'Amunisi');
+
+        return redirect()->route('amunisi.index')->with('success', "Berhasil memindahkan $jumlah butir amunisi ke $newSatkerNama");
     }
 }

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        Daftar Senjata
+        Daftar Senjata (Gudang)
     </x-slot>
 
     <!-- Alerts -->
@@ -35,6 +35,7 @@
         showReturnModal: false,
         showImportModal: false,
         showConflictModal: false,
+        showTransferModal: false,
         loading: false,
         conflicts: [],
         validData: [],
@@ -118,169 +119,128 @@
         }
     }">
 
-        <!-- Action Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
+        <!-- Action & Filter Bar -->
+        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <!-- Left: Action Buttons -->
+            <div class="flex items-center gap-2">
                 <button @click="showAddModal = true"
-                    class="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
-                    <i class="ph ph-plus-circle mr-2 text-lg"></i>
-                    Tambah Data
+                    class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all shadow-lg shadow-primary-500/20 group flex items-center">
+                    <i class="ph ph-plus-circle text-lg mr-1.5 group-hover:rotate-90 transition-transform"></i>
+                    Tambah
                 </button>
-                <button @click="showImportModal = true"
-                    class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-semibold shadow-lg shadow-green-500/20 transition-all flex items-center">
-                    <i class="ph ph-file-arrow-up mr-2 text-lg"></i>
-                    Import Excel
-                </button>
+                
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false"
-                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition-all flex items-center">
-                        <i class="ph ph-export mr-2 text-lg"></i>
+                    <button @click="open = !open"
+                        class="btn-compact bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition-all flex items-center px-2">
+                        <i class="ph ph-export text-lg mr-1"></i>
                         Export
-                        <i class="ph ph-caret-down ml-2 text-sm transition-transform" :class="open ? 'rotate-180' : ''"></i>
+                        <i class="ph ph-caret-down ml-1 text-[10px]"></i>
                     </button>
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute left-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                        <a href="{{ route('senjata.export-pdf', request()->all()) }}"
-                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
-                            <i class="ph ph-file-pdf mr-3 text-red-500 text-lg"></i>
+                    <div x-show="open" @click.away="open = false"
+                        class="absolute left-0 mt-1 w-40 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-30 transition-all overflow-hidden"
+                        x-cloak>
+                        <a href="{{ route('senjata.export-pdf', array_merge(request()->all(), ['context' => 'Gudang'])) }}"
+                            class="flex items-center px-3 py-2 text-[11px] text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-pdf mr-2 text-red-500 text-base"></i>
                             Cetak PDF
                         </a>
-                        <a href="{{ route('senjata.export-excel', request()->all()) }}"
-                            class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 transition-colors">
-                            <i class="ph ph-file-xls mr-3 text-green-500 text-lg"></i>
+                        <a href="javascript:void(0)" onclick="safeDownload('{{ route('senjata.export-excel', array_merge(request()->all(), ['context' => 'Gudang'])) }}', 'laporan-senjata-gudang.xlsx')"
+                            class="flex items-center px-3 py-2 text-[11px] text-gray-300 hover:bg-gray-700/50 transition-colors">
+                            <i class="ph ph-file-xls mr-2 text-green-500 text-base"></i>
                             Export Excel
                         </a>
                     </div>
                 </div>
+
+                <button @click="showImportModal = true"
+                    class="btn-compact bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition-all flex items-center px-2">
+                    <i class="ph ph-file-arrow-up text-lg mr-1"></i>
+                    Import
+                </button>
             </div>
 
-            <!-- Simple Search -->
-            <form action="{{ route('senjata.index') }}" method="GET" class="flex items-center space-x-2">
-                <div class="relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari senjata..."
-                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-10 py-2.5 focus:ring-primary-500 focus:border-primary-500 w-64 transition-all">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-3 text-gray-500"></i>
-                </div>
-                @if(request('per_page'))
-                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-                @endif
-                <button type="submit"
-                    class="p-2.5 bg-gray-800 text-gray-400 hover:text-white rounded-xl border border-gray-700 transition-colors">
-                    <i class="ph ph-funnel text-xl"></i>
-                </button>
-            </form>
-        </div>
-
-        <!-- Filter Bar -->
-        <div class="glass-card p-6 rounded-2xl">
-            @php
-                $showSatkerFilter = !auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']);
-            @endphp
-            <form action="{{ route('senjata.index') }}" method="GET"
-                class="grid grid-cols-1 {{ $showSatkerFilter ? 'md:grid-cols-6' : 'md:grid-cols-5' }} gap-4">
+            <!-- Right: Filter Form -->
+            <form action="{{ route('senjata.index') }}" method="GET" class="flex flex-wrap items-center gap-2 flex-1 justify-end">
+                @php
+                    $showSatkerFilter = !auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']);
+                @endphp
+                
                 @if($showSatkerFilter)
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Satker</label>
-                        <select name="satker_id"
-                            class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                            <option value="">Semua Satker</option>
-                            @foreach($satkers as $satker)
-                                <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
-                                    {{ $satker->nama_satker }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <select name="satker_id" onchange="this.form.submit()"
+                        class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[120px]">
+                        <option value="">Semua Satker</option>
+                        @foreach($satkers as $satker)
+                            <option value="{{ $satker->id }}" {{ request('satker_id') == $satker->id ? 'selected' : '' }}>
+                                {{ $satker->nama_satker }}
+                            </option>
+                        @endforeach
+                    </select>
                 @endif
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Laras</label>
-                    <select name="laras"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Laras</option>
-                        <option value="Panjang" {{ request('laras') == 'Panjang' ? 'selected' : '' }}>Panjang</option>
-                        <option value="Pendek" {{ request('laras') == 'Pendek' ? 'selected' : '' }}>Pendek</option>
-                    </select>
+
+                <select name="laras" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[100px]">
+                    <option value="">Laras</option>
+                    <option value="Panjang" {{ request('laras') == 'Panjang' ? 'selected' : '' }}>Panjang</option>
+                    <option value="Pendek" {{ request('laras') == 'Pendek' ? 'selected' : '' }}>Pendek</option>
+                </select>
+
+                <select name="kondisi" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-gray-700 text-gray-200 text-[11px] rounded-lg px-2 py-1.5 focus:ring-primary-500 min-w-[100px]">
+                    <option value="">Kondisi</option>
+                    <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
+                    <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                    <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
+                </select>
+
+                <div class="relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-[11px] rounded-lg pl-8 pr-3 py-1.5 focus:ring-primary-500 w-32 lg:w-40 transition-all">
+                    <i class="ph ph-magnifying-glass absolute left-2.5 top-2 text-gray-500 text-xs"></i>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Kondisi</label>
-                    <select name="kondisi"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Kondisi</option>
-                        <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
-                        <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak
-                            Ringan</option>
-                        <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak
-                            Berat</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Status</label>
-                    <select name="status_penyimpanan"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Status</option>
-                        <option value="Gudang" {{ request('status_penyimpanan') == 'Gudang' ? 'selected' : '' }}>Gudang</option>
-                        <option value="Personel" {{ request('status_penyimpanan') == 'Personel' ? 'selected' : '' }}>Personel</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Masa SIMSA</label>
-                    <select name="masa_simsa"
-                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-4 py-2.5 focus:ring-primary-500">
-                        <option value="">Semua Masa</option>
-                        <option value="Aktif" {{ request('masa_simsa') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="Akan Habis" {{ request('masa_simsa') == 'Akan Habis' ? 'selected' : '' }}>Akan Habis</option>
-                        <option value="Habis" {{ request('masa_simsa') == 'Habis' ? 'selected' : '' }}>Habis</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit"
-                        class="w-full px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all">
-                        Filter
-                    </button>
-                </div>
+                
+                <a href="{{ route('senjata.index') }}" class="p-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-colors" title="Reset">
+                    <i class="ph ph-arrow-counter-clockwise"></i>
+                </a>
             </form>
         </div>
 
-        <!-- Table -->
-        <div class="glass-card rounded-3xl overflow-hidden">
-            <div class="px-8 py-4 bg-gray-800/10 border-b border-gray-800 flex justify-between items-center">
+        <!-- Table Section -->
+        <div class="glass-card rounded-2xl lg:rounded-3xl overflow-hidden">
+            <div class="px-4 lg:px-8 py-4 bg-gray-800/10 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="flex items-center space-x-2 text-gray-400">
-                    <span class="text-xs uppercase font-semibold">Tampilkan:</span>
+                    <span class="text-[10px] lg:text-xs uppercase font-semibold">Tampilkan:</span>
                     <select onchange="window.location.href = this.value"
-                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-1.5 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-xs rounded-xl px-3 py-1 focus:ring-primary-500">
                         @foreach([10, 25, 50, 100] as $size)
                             <option value="{{ request()->fullUrlWithQuery(['per_page' => $size]) }}" {{ (request('per_page') ?? 10) == $size ? 'selected' : '' }}>
                                 {{ $size }}
                             </option>
                         @endforeach
                     </select>
-                    <span class="text-xs text-gray-500 ml-2">data per halaman</span>
+                </div>
+                <div class="text-[10px] lg:text-xs text-gray-500">
+                    Menampilkan {{ $senjatas->firstItem() ?? 0 }} - {{ $senjatas->lastItem() ?? 0 }} dari {{ $senjatas->total() }} data
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table-excel">
+                    <thead>
                         <tr>
-                            <th class="px-2 py-4 w-10 text-center">NO</th>
+                            <th class="w-10 text-center">NO</th>
                             @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
-                                <th class="px-8 py-4">Satker</th>
+                                <th>Satker</th>
                             @endif
-                            <th class="px-8 py-4">Nama Senjata</th>
-                            <th class="px-8 py-4">NUP</th>
-                            <th class="px-8 py-4">No. Senpi</th>
-                            <th class="px-8 py-4">Kondisi</th>
-                            <th class="px-8 py-4">Status</th>
-                            <th class="px-8 py-4">Penanggung Jawab</th>
-                            <th class="px-8 py-4 text-center">Masa Berlaku SIMSA</th>
-                            <th class="px-8 py-4 text-right">Aksi</th>
+                            <th>Nama Senjata</th>
+                            <th>NUP</th>
+                            <th>No. Senpi</th>
+                            <th>Kondisi</th>
+                            <th>Status/Amunisi</th>
+                            <th>Penanggung Jawab</th>
+                            <th class="text-center">Masa SIMSA</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
+                    <tbody class="divide-y divide-gray-800">
                         @forelse($senjatas as $senjata)
                             @php
                                 $daysToExpiry = $senjata->masa_berlaku_simsa ? \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($senjata->masa_berlaku_simsa), false) : null;
@@ -289,108 +249,84 @@
 
                                 $rowClass = '';
                                 if ($isExpired) {
-                                    $rowClass = 'bg-red-500/10 border-l-4 border-red-500';
+                                    $rowClass = 'bg-red-500/5';
                                 } elseif ($isNearExpiry) {
-                                    $rowClass = 'bg-yellow-500/10 border-l-4 border-yellow-500';
+                                    $rowClass = 'bg-yellow-500/5';
                                 }
                             @endphp
-                            <tr class="hover:bg-gray-800/30 transition-colors {{ $rowClass }}">
-                                <td class="px-2 py-4 text-center font-bold text-gray-500">
+                            <tr class="transition-colors {{ $rowClass }}">
+                                <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($senjatas->firstItem() - 1) }}
                                 </td>
                                 @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                                    <td class="px-8 py-4 text-xs">{{ $senjata->satker->nama_satker ?? '-' }}</td>
+                                    <td>{{ $senjata->satker->nama_satker ?? '-' }}</td>
                                 @endif
-                                <td class="px-8 py-4">
-                                    <span class="font-medium text-gray-100">{{ $senjata->jenis_senpi }}</span>
-                                    <span class="block text-xs text-gray-500">{{ $senjata->laras }}</span>
+                                <td>
+                                    <div class="font-bold text-gray-100">{{ $senjata->jenis_senpi }}</div>
+                                    <div class="text-[9px] text-gray-500">{{ $senjata->laras }}</div>
                                 </td>
-                                <td class="px-8 py-4 font-mono text-xs">{{ $senjata->nup ?? '-' }}</td>
-                                <td class="px-8 py-4 font-mono text-xs">{{ $senjata->no_senpi ?? '-' }}</td>
-                                <td class="px-8 py-4">
+                                <td class="font-mono">{{ $senjata->nup ?? '-' }}</td>
+                                <td class="font-mono">{{ $senjata->no_senpi ?? '-' }}</td>
+                                <td>
                                     @php
-                                        $color = match ($senjata->kondisi) {
-                                            'Baik' => 'bg-green-500/10 text-green-400 ring-green-500/20',
-                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-400 ring-yellow-500/20',
-                                            default => 'bg-red-500/10 text-red-400 ring-red-500/20'
+                                        $condColor = match ($senjata->kondisi) {
+                                            'Baik' => 'bg-green-500/10 text-green-400 border-green-500/20',
+                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                                            default => 'bg-red-500/10 text-red-400 border-red-500/20'
                                         };
                                     @endphp
-                                    <span class="px-2 py-1 rounded-lg {{ $color }} text-xs font-bold ring-1">
+                                    <span class="badge-compact border {{ $condColor }}">
                                         {{ $senjata->kondisi }}
                                     </span>
                                 </td>
-                                <td class="px-8 py-4">
+                                <td>
                                     @php
                                         $statusColor = match ($senjata->status_penyimpanan) {
-                                            'Gudang' => 'bg-blue-500/10 text-blue-400 ring-blue-500/20',
-                                            'Personel' => 'bg-purple-500/10 text-purple-400 ring-purple-500/20',
-                                            'Dipinjamkan' => 'bg-orange-500/10 text-orange-400 ring-orange-500/20',
-                                            default => 'bg-gray-500/10 text-gray-400 ring-gray-500/20'
+                                            'Gudang' => 'text-blue-400',
+                                            'Personel' => 'text-purple-400',
+                                            'Dipinjamkan' => 'text-orange-400',
+                                            default => 'text-gray-400'
                                         };
                                     @endphp
-                                    <span class="px-2 py-1 rounded-lg {{ $statusColor }} text-[10px] font-bold ring-1 uppercase">
+                                    <span class="font-bold text-[9px] uppercase {{ $statusColor }}">
                                         {{ $senjata->status_penyimpanan ?? '-' }}
                                     </span>
                                     @if($senjata->status_penyimpanan === 'Personel' && $senjata->jenis_amunisi_dibawa)
-                                        <div class="mt-1.5 flex items-center gap-1.5">
-                                            <i class="ph ph-bullets text-orange-400 text-xs"></i>
-                                            <span class="text-[10px] text-orange-300 font-semibold">
-                                                {{ $senjata->jenis_amunisi_dibawa }}
-                                                @if($senjata->jumlah_amunisi_dibawa)
-                                                    <span class="font-bold text-orange-200">({{ $senjata->jumlah_amunisi_dibawa }} butir)</span>
-                                                @endif
-                                            </span>
+                                        <div class="text-[9px] text-orange-300/80 leading-none mt-0.5">
+                                            {{ $senjata->jenis_amunisi_dibawa }} ({{ $senjata->jumlah_amunisi_dibawa }})
                                         </div>
                                     @endif
                                 </td>
-                                <td class="px-8 py-4">
-                                    <span class="text-gray-100">{{ $senjata->penanggung_jawab }}</span>
-                                    <span class="block text-xs text-gray-500">{{ $senjata->nrp }}</span>
+                                <td>
+                                    <div class="text-gray-100">{{ $senjata->penanggung_jawab }}</div>
+                                    <div class="text-[9px] text-gray-500">{{ $senjata->nrp }}</div>
                                 </td>
-                                <td class="px-8 py-4 text-center text-xs">
+                                <td class="text-center">
                                     @if($senjata->masa_berlaku_simsa)
-                                        <div class="space-y-1">
-                                            <span
-                                                class="block {{ $isExpired ? 'text-red-400 font-bold' : ($isNearExpiry ? 'text-yellow-400 font-bold' : 'text-gray-300') }}">
-                                                {{ \Carbon\Carbon::parse($senjata->masa_berlaku_simsa)->format('d/m/Y') }}
-                                            </span>
-                                            @if($isExpired)
-                                                <span
-                                                    class="px-2 py-0.5 rounded-full bg-red-500/20 text-red-500 text-[10px] uppercase font-bold border border-red-500/30">
-                                                    Habis
-                                                </span>
-                                            @elseif($isNearExpiry)
-                                                <span
-                                                    class="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-500 text-[10px] uppercase font-bold border border-yellow-500/30">
-                                                    Hampir Habis
-                                                </span>
-                                            @endif
+                                        <div class="font-mono {{ $isExpired ? 'text-red-400 font-bold' : ($isNearExpiry ? 'text-yellow-400 font-bold' : 'text-gray-400') }}">
+                                            {{ \Carbon\Carbon::parse($senjata->masa_berlaku_simsa)->format('d/m/y') }}
                                         </div>
                                     @else
-                                        <span class="text-gray-600">-</span>
+                                        <span class="text-gray-700">-</span>
                                     @endif
                                 </td>
-                                <td class="px-8 py-4 text-right">
-                                    <div class="flex justify-end space-x-2">
+                                <td class="text-right">
+                                    <div class="flex justify-end items-center space-x-1">
                                         @if($senjata->status_penyimpanan === 'Personel' && $senjata->jumlah_amunisi_dibawa > 0)
-                                            <button @click='openReturn(@json($senjata))'
-                                                class="p-2 text-orange-400 hover:text-orange-300 transition-colors cursor-pointer"
-                                                title="Kembalikan Amunisi">
-                                                <i class="ph ph-arrow-u-down-left text-lg"></i>
+                                            <button @click='openReturn(@json($senjata))' class="p-1.5 text-orange-400 hover:bg-orange-500/10 rounded" title="Kembalikan Amunisi">
+                                                <i class="ph ph-arrow-u-down-left"></i>
                                             </button>
                                         @endif
-                                        <button @click='openEdit(@json($senjata))'
-                                            class="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                            title="Edit">
-                                            <i class="ph ph-pencil-simple text-lg"></i>
+                                        <button @click='formData = { ...@json($senjata) }; showTransferModal = true' class="p-1.5 text-gray-400 hover:text-primary-400 hover:bg-primary-500/10 rounded" title="Kirim">
+                                            <i class="ph ph-paper-plane-tilt"></i>
                                         </button>
-                                        <form id="delete-form-{{ $senjata->id }}" action="{{ route('senjata.destroy', $senjata->id) }}" method="POST">
+                                        <button @click='openEdit(@json($senjata))' class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded" title="Edit">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <form id="delete-form-{{ $senjata->id }}" action="{{ route('senjata.destroy', $senjata->id) }}" method="POST" class="inline">
                                             @csrf @method('DELETE')
-                                            <button type="button" 
-                                                onclick="confirmDelete('delete-form-{{ $senjata->id }}', 'data ini')"
-                                                class="p-2 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
-                                                title="Hapus">
-                                                <i class="ph ph-trash text-lg"></i>
+                                            <button type="button" onclick="confirmDelete('delete-form-{{ $senjata->id }}', 'data ini')" class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded" title="Hapus">
+                                                <i class="ph ph-trash"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -398,8 +334,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 8 : 7 }}"
-                                    class="px-8 py-12 text-center text-gray-500">Tidak ada data ditemukan</td>
+                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 10 : 9 }}"
+                                    class="px-8 py-12 text-center text-gray-500 uppercase tracking-widest text-xs">Tidak ada data ditemukan</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -19,7 +19,7 @@ class AlsintorController extends Controller
     {
         $query = Alsintor::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -53,7 +53,7 @@ class AlsintorController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -76,7 +76,7 @@ class AlsintorController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -179,7 +179,7 @@ class AlsintorController extends Controller
         $query = Alsintor::with('satker');
         $satker = null;
 
-        if (auth()->user()->satker_id) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $satkerId = auth()->user()->satker_id;
             $query->where('satker_id', $satkerId);
             $satker = Satker::find($satkerId);
@@ -199,7 +199,7 @@ class AlsintorController extends Controller
     {
         $query = \App\Models\Alsintor::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -222,5 +222,22 @@ class AlsintorController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new AlsintorTemplateExport, 'format-impor-alsintor.xlsx');
+    }
+
+    public function transfer(Request $request, $id)
+    {
+        $alsintor = Alsintor::findOrFail($id);
+        $request->validate([
+            'satker_id' => 'required|exists:satkers,id',
+        ]);
+
+        $oldSatker = $alsintor->satker->nama_satker ?? 'Satker Lama';
+        $newSatker = Satker::findOrFail($request->satker_id)->nama_satker;
+
+        $alsintor->update(['satker_id' => $request->satker_id]);
+
+        $this->logActivity('Mutasi Alsintor', "Memindahkan alsintor " . $alsintor->jenis_barang . " (NUP: " . ($alsintor->nup ?? '-') . ") dari $oldSatker ke $newSatker", 'Alsintor');
+
+        return redirect()->route('alsintor.index')->with('success', 'Data alsintor berhasil dipindahkan ke ' . $newSatker);
     }
 }

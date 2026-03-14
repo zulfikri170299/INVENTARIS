@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Alsus;
+use App\Models\Alsintor;
 use App\Models\Satker;
+use App\Exports\AlsusAlsintorExport;
 use App\Imports\AlsusImport;
 use App\Exports\AlsusTemplateExport;
 use App\Exports\AlsusExport;
@@ -19,7 +21,7 @@ class AlsusController extends Controller
     {
         $query = Alsus::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -53,7 +55,7 @@ class AlsusController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -76,7 +78,7 @@ class AlsusController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -179,7 +181,7 @@ class AlsusController extends Controller
         $query = Alsus::with('satker');
         $satker = null;
 
-        if (auth()->user()->satker_id) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $satkerId = auth()->user()->satker_id;
             $query->where('satker_id', $satkerId);
             $satker = Satker::find($satkerId);
@@ -199,7 +201,7 @@ class AlsusController extends Controller
     {
         $query = Alsus::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -222,5 +224,120 @@ class AlsusController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new AlsusTemplateExport, 'format-impor-alsus.xlsx');
+    }
+
+    public function transfer(Request $request, $id)
+    {
+        $alsus = Alsus::findOrFail($id);
+        $request->validate([
+            'satker_id' => 'required|exists:satkers,id',
+        ]);
+
+        $oldSatker = $alsus->satker->nama_satker ?? 'Satker Lama';
+        $newSatker = Satker::findOrFail($request->satker_id)->nama_satker;
+
+        $alsus->update(['satker_id' => $request->satker_id]);
+
+        $this->logActivity('Mutasi Alsus', "Memindahkan alsus " . $alsus->jenis_barang . " (NUP: " . ($alsus->nup ?? '-') . ") dari $oldSatker ke $newSatker", 'Alsus');
+
+        return redirect()->route('alsus.index')->with('success', 'Data alsus berhasil dipindahkan ke ' . $newSatker);
+    }
+
+    public function laporanRingkas(Request $request)
+    {
+        $satkerId = null;
+        $tipe = $request->input('tipe', 'semua');
+        $kondisi = $request->input('kondisi');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2'])) {
+            $satkerId = auth()->user()->satker_id;
+        }
+
+        if ($request->filled('satker_id')) {
+            $satkerId = $request->satker_id;
+        }
+
+        // Get Alsus data
+        $alsus = collect();
+        if ($tipe === 'semua' || $tipe === 'alsus') {
+            $alsusQuery = Alsus::with('satker');
+            if ($satkerId) {
+                $alsusQuery->where('satker_id', $satkerId);
+            }
+            if ($kondisi) {
+                $alsusQuery->where('kondisi', $kondisi);
+            }
+            $alsus = $alsusQuery->get();
+        }
+
+        // Get Alsintor data
+        $alsintor = collect();
+        if ($tipe === 'semua' || $tipe === 'alsintor') {
+            $alsintorQuery = Alsintor::with('satker');
+            if ($satkerId) {
+                $alsintorQuery->where('satker_id', $satkerId);
+            }
+            if ($kondisi) {
+                $alsintorQuery->where('kondisi', $kondisi);
+            }
+            $alsintor = $alsintorQuery->get();
+        }
+
+        // Combine and group
+        $combined = $alsus->concat($alsintor);
+
+        $grouped = $combined->groupBy(function($item) {
+            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_barang;
+        });
+
+        $data = collect();
+        foreach ($grouped as $key => $items) {
+            list($satker, $barang) = explode('|', $key);
+
+            $statusCounts = $items->groupBy('kondisi')->map(function($group) {
+                return $group->count();
+            });
+
+            $data->push([
+                'satker' => $satker,
+                'jenis_barang' => $barang,
+                'baik' => $statusCounts->get('Baik', 0),
+                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
+                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
+                'jumlah' => $items->count(),
+            ]);
+        }
+
+        // Sort by satker name
+        $data = $data->sortBy('satker')->values();
+
+        // Statistics
+        $stats = [
+            'total_alsus' => $alsus->count(),
+            'total_alsintor' => $alsintor->count(),
+            'total_baik' => $combined->where('kondisi', 'Baik')->count(),
+            'total_rusak_ringan' => $combined->where('kondisi', 'Rusak Ringan')->count(),
+            'total_rusak_berat' => $combined->where('kondisi', 'Rusak Berat')->count(),
+            'total' => $combined->count(),
+        ];
+
+        $satkers = Satker::all();
+
+        return view('alsus.laporan-ringkas', compact('data', 'stats', 'satkers', 'satkerId', 'tipe', 'kondisi'));
+    }
+
+    public function exportSummary(Request $request)
+    {
+        $satkerId = null;
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2'])) {
+            $satkerId = auth()->user()->satker_id;
+        }
+
+        if ($request->filled('satker_id')) {
+            $satkerId = $request->satker_id;
+        }
+
+        return Excel::download(new AlsusAlsintorExport($satkerId), 'laporan-ringkas-alsus-alsintor.xlsx');
     }
 }

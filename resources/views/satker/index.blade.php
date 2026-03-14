@@ -21,17 +21,17 @@
     }">
 
         <!-- Action Bar -->
-        <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold text-white">Daftar Satuan Kerja</h3>
-            <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-between gap-3">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Daftar Satuan Kerja</h3>
+            <div class="flex items-center space-x-2">
                 <button @click="showImportModal = true"
-                    class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl font-semibold transition-all flex items-center border border-gray-700">
-                    <i class="ph ph-file-arrow-up mr-2 text-lg text-primary-400"></i>
+                    class="btn-compact bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold transition-all flex items-center border border-gray-700">
+                    <i class="ph ph-file-arrow-up mr-1.5 text-lg text-primary-400"></i>
                     Import Satker
                 </button>
                 <button @click="showAddModal = true"
-                    class="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
-                    <i class="ph ph-plus-circle mr-2 text-lg"></i>
+                    class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
+                    <i class="ph ph-plus-circle mr-1.5 text-lg"></i>
                     Tambah Satker
                 </button>
             </div>
@@ -53,24 +53,24 @@
                     <span class="text-xs text-gray-500 ml-2">data per halaman</span>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table-excel">
+                    <thead>
                         <tr>
-                            <th class="px-2 py-4 w-10 text-center">NO</th>
-                            <th class="px-8 py-4">Nama Satuan Kerja</th>
-                            <th class="px-8 py-4">Total Inventaris</th>
-                            <th class="px-8 py-4 text-right">Aksi</th>
+                            <th class="w-10 text-center">NO</th>
+                            <th>Nama Satuan Kerja</th>
+                            <th>Total Inventaris</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
+                    <tbody class="divide-y divide-gray-800">
                         @forelse($satkers as $index => $satker)
-                            <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-2 py-4 text-center font-bold text-gray-500">
+                            <tr class="transition-colors">
+                                <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($satkers->firstItem() - 1) }}
                                 </td>
-                                <td class="px-8 py-4 font-medium text-gray-100">{{ $satker->nama_satker }}</td>
-                                <td class="px-8 py-4">
+                                <td class="font-bold text-gray-100">{{ $satker->nama_satker }}</td>
+                                <td>
                                     @php
                                         $total = ($satker->senjatas_count ?? 0) +
                                             ($satker->kendaraans_count ?? 0) +
@@ -78,26 +78,23 @@
                                             ($satker->alsintors_count ?? 0) +
                                             ($satker->amunisis_count ?? 0);
                                     @endphp
-                                    <span
-                                        class="bg-primary-500/10 text-primary-400 px-3 py-1 rounded-full text-xs font-bold border border-primary-500/20">
+                                    <span class="badge-compact border bg-primary-500/10 text-primary-400 border-primary-500/20">
                                         {{ $total }} Item
                                     </span>
                                 </td>
-                                <td class="px-8 py-4 text-right">
-                                    <div class="flex justify-end space-x-2">
+                                <td class="text-right">
+                                    <div class="flex justify-end items-center space-x-1">
                                         <button @click='openEdit(@json($satker))'
-                                            class="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                            title="Edit">
-                                            <i class="ph ph-pencil-simple text-lg"></i>
+                                            class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded" title="Edit">
+                                            <i class="ph ph-pencil-simple"></i>
                                         </button>
-                                        <form id="delete-form-{{ $satker->id }}"
-                                            action="{{ route('satkers.destroy', $satker->id) }}" method="POST">
+                                        <form id="delete-form- Satker ini"
+                                            action="{{ route('satkers.destroy', $satker->id) }}" method="POST" class="inline">
                                             @csrf @method('DELETE')
                                             <button type="button"
                                                 onclick="confirmDelete('delete-form-{{ $satker->id }}', 'Satker ini')"
-                                                class="p-2 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
-                                                title="Hapus">
-                                                <i class="ph ph-trash text-lg"></i>
+                                                class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded" title="Hapus">
+                                                <i class="ph ph-trash"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -105,7 +102,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-8 py-12 text-center text-gray-500">Belum ada data Satker</td>
+                                <td colspan="4" class="px-8 py-12 text-center text-gray-500 uppercase tracking-widest text-xs">Belum ada data Satker</td>
                             </tr>
                         @endforelse
                     </tbody>

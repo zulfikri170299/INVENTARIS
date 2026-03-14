@@ -384,3 +384,71 @@
         </div>
     </div>
 </div>
+
+<!-- Transfer Modal -->
+<div x-show="showTransferModal"
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0f172a]/80 backdrop-blur-sm"
+    @click="showTransferModal = false" x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0" x-cloak>
+
+    <div class="glass-card w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50" @click.stop
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform scale-95 translate-y-4"
+        x-transition:enter-end="opacity-100 transform scale-100 translate-y-0 text-decoration-none">
+
+        <div class="px-8 py-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/20">
+            <div class="flex items-center">
+                <div class="p-2 bg-primary-500/10 rounded-xl mr-4 text-decoration-none">
+                    <i class="ph ph-paper-plane-tilt text-2xl text-primary-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-100">Mutasi Kendaraan</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Kirim kendaraan ke satker lain</p>
+                </div>
+            </div>
+            <button @click="showTransferModal = false" class="text-gray-500 hover:text-white transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <form :action="'{{ url('kendaraan') }}/' + formData.id + '/transfer'" method="POST" class="p-8 space-y-5">
+            @csrf
+            <div class="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 mb-2">
+                <p class="text-xs text-gray-400 mb-1">Kendaraan:</p>
+                <p class="text-lg font-bold text-white text-decoration-none" x-text="formData.jenis_kendaraan"></p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-gray-400"
+                        x-text="formData.nopol || '-'"></span>
+                    <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-gray-400"
+                        x-text="'NUP: ' + (formData.nup || '-')"></span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Satker Tujuan</label>
+                <select name="satker_id" required
+                    class="w-full bg-gray-900/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 text-decoration-none">
+                    <option value="">-- Pilih Satker --</option>
+                    @foreach($satkers as $satker)
+                        <template x-if="formData.satker_id != {{ $satker->id }}">
+                            <option value="{{ $satker->id }}">{{ $satker->nama_satker }}</option>
+                        </template>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-800">
+                <button type="button" @click="showTransferModal = false"
+                    class="px-6 py-2.5 text-sm font-semibold text-gray-400 hover:text-white transition-colors">
+                    Batal
+                </button>
+                <button type="submit"
+                    class="px-8 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary-500/20 text-decoration-none">
+                    Kirim Sekarang
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

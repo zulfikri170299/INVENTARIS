@@ -3,8 +3,8 @@
         <!-- Logo / Header -->
         <div class="text-center mb-8 font-outfit">
             <h1
-                class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 tracking-tight">
-                INVENLOG
+                class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 tracking-tight uppercase">
+                Invenlog <br> Polda NTB
             </h1>
             <p class="text-gray-400 text-sm mt-2">Atur Ulang Kata Sandi</p>
         </div>

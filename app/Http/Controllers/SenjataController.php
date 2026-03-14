@@ -17,9 +17,9 @@ class SenjataController extends Controller
     use LogActivity;
     public function index(Request $request)
     {
-        $query = Senjata::with('satker');
+        $query = Senjata::with('satker')->where('status_penyimpanan', 'Gudang');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -67,12 +67,68 @@ class SenjataController extends Controller
             ->selectRaw('SUM(jumlah) as total_stok')
             ->groupBy('jenis_amunisi');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $amunisiQuery->where('satker_id', auth()->user()->satker_id);
         }
         $availableAmunisi = $amunisiQuery->orderBy('jenis_amunisi')->get();
 
         return view('senjata.index', compact('senjatas', 'satkers', 'availableAmunisi'));
+    }
+
+    public function pembawa(Request $request)
+    {
+        $query = Senjata::with('satker')->where('status_penyimpanan', 'Personel');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
+            $query->where('satker_id', auth()->user()->satker_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('jenis_senpi', 'like', '%' . $request->search . '%')
+                  ->orWhere('nup', 'like', '%' . $request->search . '%')
+                  ->orWhere('penanggung_jawab', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('satker_id')) {
+            $query->where('satker_id', $request->satker_id);
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        if ($request->filled('laras')) {
+            $query->where('laras', $request->laras);
+        }
+
+        if ($request->filled('masa_simsa')) {
+            $today = now()->toDateString();
+            $thirtyDaysFromNow = now()->addDays(30)->toDateString();
+
+            if ($request->masa_simsa === 'Aktif') {
+                $query->where('masa_berlaku_simsa', '>=', $today);
+            } elseif ($request->masa_simsa === 'Akan Habis') {
+                $query->whereBetween('masa_berlaku_simsa', [$today, $thirtyDaysFromNow]);
+            } elseif ($request->masa_simsa === 'Habis') {
+                $query->where('masa_berlaku_simsa', '<', $today);
+            }
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $senjatas = $query->latest()->paginate($perPage)->withQueryString();
+        $satkers = Satker::all();
+
+        // Ambil jenis amunisi beserta total stoknya sesuai satker yang sedang login
+        $amunisiQuery = \App\Models\Amunisi::select('jenis_amunisi')
+            ->selectRaw('SUM(jumlah) as total_stok')
+            ->groupBy('jenis_amunisi');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
+            $amunisiQuery->where('satker_id', auth()->user()->satker_id);
+        }
+        $availableAmunisi = $amunisiQuery->orderBy('jenis_amunisi')->get();
+
+        return view('senjata.pembawa', compact('senjatas', 'satkers', 'availableAmunisi'));
     }
 
     public function store(Request $request)
@@ -93,7 +149,7 @@ class SenjataController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -125,7 +181,7 @@ class SenjataController extends Controller
                     'nama_personel' => $senjata->penanggung_jawab ?? '-',
                     'pangkat_nrp' => $senjata->nrp ?? '-',
                     'jenis_amunisi' => $senjata->jenis_amunisi_dibawa,
-                    'jumlah' => $senjata->jumlah_amunisi_dibawa,
+                    'jumlah' => -$senjata->jumlah_amunisi_dibawa, // Negative for out
                     'tanggal' => now(),
                     'keterangan' => 'Diberikan bersama senjata ' . $senjata->jenis_senpi . ' (NUP: ' . ($senjata->nup ?? '-') . ')',
                 ]);
@@ -157,7 +213,7 @@ class SenjataController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -280,7 +336,7 @@ class SenjataController extends Controller
                 'nama_personel' => $senjata->penanggung_jawab ?? '-',
                 'pangkat_nrp' => $senjata->nrp ?? '-',
                 'jenis_amunisi' => $jenisAmunisi,
-                'jumlah' => $jumlah,
+                'jumlah' => -$jumlah, // Negative for used
                 'tanggal' => now(),
                 'keterangan' => 'Amunisi Dipakai - ' . ($request->keterangan_pakai ?? 'Tanpa keterangan') . ' (Senjata: ' . ($senjata->no_senpi ?? '-') . ')'
             ]);
@@ -306,7 +362,7 @@ class SenjataController extends Controller
                 'nama_personel' => $senjata->penanggung_jawab ?? '-',
                 'pangkat_nrp' => $senjata->nrp ?? '-',
                 'jenis_amunisi' => $type,
-                'jumlah' => $qty,
+                'jumlah' => -$qty, // Negative for taking from warehouse
                 'tanggal' => now(),
                 'keterangan' => $note . ' (Senjata: ' . ($senjata->no_senpi ?? $senjata->jenis_senpi) . ')',
             ]);
@@ -385,13 +441,15 @@ class SenjataController extends Controller
                         'satker_id' => $satker_id,
                         'jenis_senpi' => $row['jenis_senpi'],
                         'laras' => $row['laras'],
-                        'nup' => $row['nup'],
-                        'no_senpi' => $row['no_senpi'],
+                        'nup' => $row['nup'] ?? null,
+                        'no_senpi' => $row['no_senpi'] ?? null,
                         'kondisi' => $row['kondisi'] ?? 'Baik',
-                        'penanggung_jawab' => $row['penanggung_jawab'],
-                        'nrp' => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
-                        'status_penyimpanan' => $row['status_penyimpanan'],
-                        'masa_berlaku_simsa' => $row['masa_berlaku_simsa'] ?? null,
+                        'penanggung_jawab' => $request->context === 'Personel' ? ($row['penanggung_jawab'] ?? null) : null,
+                        'nrp' => $request->context === 'Personel' ? ($row['pangkat_nrp'] ?? $row['nrp'] ?? null) : null,
+                        'status_penyimpanan' => $request->context === 'Personel' ? ($row['status_penyimpanan'] ?? 'Personel') : 'Gudang',
+                        'masa_berlaku_simsa' => $request->context === 'Personel' ? ($row['masa_berlaku_simsa'] ?? null) : null,
+                        'jenis_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jenis_amunisi_dibawa'] ?? null) : null,
+                        'jumlah_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jumlah_amunisi_dibawa'] ?? 0) : 0,
                         'keterangan' => $row['keterangan'] ?? null,
                     ]
                 ];
@@ -400,13 +458,15 @@ class SenjataController extends Controller
                     'satker_id' => $satker_id,
                     'jenis_senpi' => $row['jenis_senpi'],
                     'laras' => $row['laras'],
-                    'nup' => $row['nup'],
-                    'no_senpi' => $row['no_senpi'],
+                    'nup' => $row['nup'] ?? null,
+                    'no_senpi' => $row['no_senpi'] ?? null,
                     'kondisi' => $row['kondisi'] ?? 'Baik',
-                    'penanggung_jawab' => $row['penanggung_jawab'],
-                    'nrp' => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
-                    'status_penyimpanan' => $row['status_penyimpanan'],
-                    'masa_berlaku_simsa' => $row['masa_berlaku_simsa'] ?? null,
+                    'penanggung_jawab' => $request->context === 'Personel' ? ($row['penanggung_jawab'] ?? null) : null,
+                    'nrp' => $request->context === 'Personel' ? ($row['pangkat_nrp'] ?? $row['nrp'] ?? null) : null,
+                    'status_penyimpanan' => $request->context === 'Personel' ? ($row['status_penyimpanan'] ?? 'Personel') : 'Gudang',
+                    'masa_berlaku_simsa' => $request->context === 'Personel' ? ($row['masa_berlaku_simsa'] ?? null) : null,
+                    'jenis_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jenis_amunisi_dibawa'] ?? null) : null,
+                    'jumlah_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jumlah_amunisi_dibawa'] ?? 0) : 0,
                     'keterangan' => $row['keterangan'] ?? null,
                 ];
             }
@@ -456,7 +516,7 @@ class SenjataController extends Controller
         $query = Senjata::with('satker');
         $satker = null;
 
-        if (auth()->user()->satker_id) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $satkerId = auth()->user()->satker_id;
             $query->where('satker_id', $satkerId);
             $satker = Satker::find($satkerId);
@@ -476,7 +536,7 @@ class SenjataController extends Controller
     {
         $query = Senjata::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -502,11 +562,107 @@ class SenjataController extends Controller
             $query->where('status_penyimpanan', $request->status_penyimpanan);
         }
 
-        return Excel::download(new SenjataExport($query), 'laporan-senjata.xlsx');
+        $context = $request->query('context', 'Gudang');
+        $filename = $context === 'Personel' ? 'laporan-pembawa-senjata.xlsx' : 'laporan-senjata-gudang.xlsx';
+        return Excel::download(new SenjataExport($query, $context), $filename);
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
-        return Excel::download(new SenjataTemplateExport, 'format-impor-senjata.xlsx');
+        $context = $request->query('context', 'Gudang');
+        $filename = $context === 'Personel' ? 'format-impor-pembawa-senjata.xlsx' : 'format-impor-senjata-gudang.xlsx';
+        return Excel::download(new SenjataTemplateExport($context), $filename);
+    }
+
+    public function transfer(Request $request, $id)
+    {
+        $senjata = Senjata::findOrFail($id);
+        $request->validate([
+            'satker_id' => 'required|exists:satkers,id',
+        ]);
+
+        $oldSatker = $senjata->satker->nama_satker ?? 'Satker Lama';
+        $newSatker = Satker::findOrFail($request->satker_id)->nama_satker;
+
+        // Return amunisi to warehouse if any before transfer
+        if ($senjata->status_penyimpanan === 'Personel' && $senjata->jenis_amunisi_dibawa && $senjata->jumlah_amunisi_dibawa > 0) {
+            $this->returnAmunisiToGudang($senjata, $senjata->jenis_amunisi_dibawa, $senjata->jumlah_amunisi_dibawa, 'Pengembalian (Mutasi ke ' . $newSatker . ')');
+            $senjata->update([
+                'jumlah_amunisi_dibawa' => 0,
+                'jenis_amunisi_dibawa' => null,
+                'status_penyimpanan' => 'Gudang'
+            ]);
+        }
+
+        $senjata->update(['satker_id' => $request->satker_id]);
+
+        $this->logActivity('Mutasi Senjata', "Memindahkan senjata " . $senjata->jenis_senpi . " (NUP: " . ($senjata->nup ?? '-') . ") dari $oldSatker ke $newSatker", 'Senjata');
+
+        return redirect()->route('senjata.index')->with('success', 'Senjata berhasil dipindahkan ke ' . $newSatker);
+    }
+
+    public function laporanRingkas(Request $request)
+    {
+        $satkerId = null;
+        $laras = $request->input('laras');
+        $kondisi = $request->input('kondisi');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
+            $satkerId = auth()->user()->satker_id;
+        }
+
+        if ($request->filled('satker_id')) {
+            $satkerId = $request->satker_id;
+        }
+
+        $query = Senjata::with('satker');
+        if ($satkerId) {
+            $query->where('satker_id', $satkerId);
+        }
+        if ($laras) {
+            $query->where('laras', $laras);
+        }
+        if ($kondisi) {
+            $query->where('kondisi', $kondisi);
+        }
+
+        $senjatas = $query->get();
+
+        // Group by satker + jenis_senpi
+        $grouped = $senjatas->groupBy(function($item) {
+            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_senpi;
+        });
+
+        $data = collect();
+        foreach ($grouped as $key => $items) {
+            list($satker, $jenisSenpi) = explode('|', $key);
+
+            $statusCounts = $items->countBy('kondisi');
+
+            $data->push([
+                'satker' => $satker,
+                'jenis_senpi' => $jenisSenpi,
+                'baik' => $statusCounts->get('Baik', 0),
+                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
+                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
+                'jumlah' => $items->count(),
+            ]);
+        }
+
+        $data = $data->sortBy('satker')->values();
+
+        $stats = [
+            'total' => $senjatas->count(),
+            'total_baik' => $senjatas->where('kondisi', 'Baik')->count(),
+            'total_rusak_ringan' => $senjatas->where('kondisi', 'Rusak Ringan')->count(),
+            'total_rusak_berat' => $senjatas->where('kondisi', 'Rusak Berat')->count(),
+            'total_panjang' => $senjatas->where('laras', 'Panjang')->count(),
+            'total_pendek' => $senjatas->where('laras', 'Pendek')->count(),
+        ];
+
+        $satkers = Satker::all();
+
+        return view('senjata.laporan-ringkas', compact('data', 'stats', 'satkers', 'satkerId', 'laras', 'kondisi'));
     }
 }
+

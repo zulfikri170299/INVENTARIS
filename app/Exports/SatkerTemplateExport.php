@@ -18,7 +18,7 @@ class SatkerTemplateExport implements FromArray, WithHeadings
     public function headings(): array
     {
         return [
-            'nama_satker',
+            'NAMA SATKER',
         ];
     }
 }

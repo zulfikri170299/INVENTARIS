@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('senjata.index')" :active="request()->routeIs('senjata.index')">
+                        {{ __('Senjata (Gudang)') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('senjata.pembawa')" :active="request()->routeIs('senjata.pembawa')">
+                        {{ __('Pembawa Senjata') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -77,8 +83,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('senjata.index')" :active="request()->routeIs('senjata.*')">
-                {{ __('Senjata') }}
+            <x-responsive-nav-link :href="route('senjata.index')" :active="request()->routeIs('senjata.index')">
+                {{ __('Senjata (Gudang)') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('senjata.pembawa')" :active="request()->routeIs('senjata.pembawa')">
+                {{ __('Pembawa Senjata') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('kendaraan.index')" :active="request()->routeIs('kendaraan.*')">
                 {{ __('Kendaraan') }}

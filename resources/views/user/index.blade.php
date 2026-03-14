@@ -24,11 +24,14 @@
     }">
 
         <!-- Action Bar -->
-        <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold text-white">Daftar Pengguna</h3>
+        <div class="glass-card p-2 px-3 rounded-xl flex items-center justify-between gap-3 animate-fade-in">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-users text-primary-500 text-lg"></i>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Manajemen User</h3>
+            </div>
             <button @click="showAddModal = true"
-                class="px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
-                <i class="ph ph-user-plus mr-2 text-lg"></i>
+                class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
+                <i class="ph ph-user-plus mr-1.5 text-lg"></i>
                 Tambah User
             </button>
         </div>
@@ -49,36 +52,35 @@
                     <span class="text-xs text-gray-500 ml-2">data per halaman</span>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="table-excel">
+                    <thead>
                         <tr>
-                            <th class="px-2 py-4 w-10 text-center">NO</th>
-                            <th class="px-8 py-4">Satker</th>
-                            <th class="px-8 py-4">Nama</th>
-                            <th class="px-8 py-4">Email</th>
-                            <th class="px-8 py-4">Role</th>
-                            <th class="px-8 py-4 text-right">Aksi</th>
+                            <th class="w-10 text-center">NO</th>
+                            <th>Satker</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-800 text-sm text-gray-300">
+                    <tbody class="divide-y divide-gray-800">
                         @forelse($users as $user)
-                            <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-2 py-4 text-center font-bold text-gray-500">
+                            <tr class="transition-colors">
+                                <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($users->firstItem() - 1) }}
                                 </td>
-                                <td class="px-8 py-4 text-xs">{{ $user->satker->nama_satker ?? 'Global / Admin' }}</td>
-                                <td class="px-8 py-4">
+                                <td>{{ $user->satker->nama_satker ?? 'Global / Admin' }}</td>
+                                <td>
                                     <div class="flex items-center">
-                                        <div
-                                            class="w-8 h-8 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold mr-3 border border-primary-500/30">
+                                        <div class="w-6 h-6 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold mr-2 border border-primary-500/30">
                                             {{ substr($user->name, 0, 1) }}
                                         </div>
-                                        <span class="font-medium text-gray-100">{{ $user->name }}</span>
+                                        <span class="font-bold text-gray-100">{{ $user->name }}</span>
                                     </div>
                                 </td>
-                                <td class="px-8 py-4 text-gray-400">{{ $user->email }}</td>
-                                <td class="px-8 py-4">
+                                <td class="text-gray-400 font-mono">{{ $user->email }}</td>
+                                <td>
                                     @php
                                         $roleColor = match ($user->role) {
                                             'Super Admin' => 'bg-red-500/10 text-red-400 border-red-500/20',
@@ -87,16 +89,15 @@
                                             default => 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                         };
                                     @endphp
-                                    <span class="px-2.5 py-1 rounded-lg {{ $roleColor }} text-xs font-bold border">
+                                    <span class="badge-compact border {{ $roleColor }}">
                                         {{ $user->role }}
                                     </span>
                                 </td>
-                                <td class="px-8 py-4 text-right">
-                                    <div class="flex justify-end space-x-2">
+                                <td class="text-right">
+                                    <div class="flex justify-end items-center space-x-1">
                                         <button @click='openEdit(@json($user))'
-                                            class="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                                            title="Edit">
-                                            <i class="ph ph-pencil-simple text-lg"></i>
+                                            class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded" title="Edit">
+                                            <i class="ph ph-pencil-simple"></i>
                                         </button>
                                         @if($user->id !== auth()->id())
                                             <form id="reset-form-{{ $user->id }}"
@@ -104,19 +105,18 @@
                                                 class="inline">
                                                 @csrf
                                                 <button type="button" onclick="confirmReset('{{ $user->id }}')"
-                                                    class="p-2 text-gray-400 hover:text-orange-400 transition-colors cursor-pointer"
+                                                    class="p-1.5 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded"
                                                     title="Reset Password">
-                                                    <i class="ph ph-password text-lg"></i>
+                                                    <i class="ph ph-password"></i>
                                                 </button>
                                             </form>
                                             <form id="delete-form-{{ $user->id }}"
-                                                action="{{ route('users.destroy', $user->id) }}" method="POST">
+                                                action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline">
                                                 @csrf @method('DELETE')
                                                 <button type="button"
                                                     onclick="confirmDelete('delete-form-{{ $user->id }}', 'user ini')"
-                                                    class="p-2 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
-                                                    title="Hapus">
-                                                    <i class="ph ph-trash text-lg"></i>
+                                                    class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded" title="Hapus">
+                                                    <i class="ph ph-trash"></i>
                                                 </button>
                                             </form>
                                         @endif
@@ -125,7 +125,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-8 py-12 text-center text-gray-500">Belum ada data User</td>
+                                <td colspan="6" class="px-8 py-12 text-center text-gray-500 uppercase tracking-widest text-xs">Belum ada data User</td>
                             </tr>
                         @endforelse
                     </tbody>

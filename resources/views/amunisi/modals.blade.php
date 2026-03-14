@@ -303,3 +303,73 @@
         </div>
     </div>
 </div>
+
+<!-- Transfer Amunisi Modal -->
+<div x-show="showTransferModal"
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#0f172a]/80 backdrop-blur-sm"
+    @click="showTransferModal = false" x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0">
+
+    <div class="glass-card w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50" @click.stop
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform scale-95 translate-y-4"
+        x-transition:enter-end="opacity-100 transform scale-100 translate-y-0">
+
+        <div class="px-8 py-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/20">
+            <div class="flex items-center">
+                <div class="p-2 bg-primary-500/10 rounded-xl mr-4">
+                    <i class="ph ph-paper-plane-tilt text-2xl text-primary-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-100">Mutasi Amunisi</h3>
+                    <p class="text-xs text-gray-500 mt-0.5" x-text="'Kirim amunisi ke satker lain'"></p>
+                </div>
+            </div>
+            <button @click="showTransferModal = false" class="text-gray-500 hover:text-white transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <form :action="'/amunisi/' + formData.id + '/transfer'" method="POST" class="p-8 space-y-5">
+            @csrf
+            <div class="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 mb-2">
+                <p class="text-xs text-gray-400 mb-1">Amunisi:</p>
+                <p class="text-lg font-bold text-white" x-text="formData.jenis_amunisi"></p>
+                <p class="text-xs text-primary-400 mt-1">Stok saat ini: <span x-text="formData.jumlah"></span> butir</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Satker Tujuan</label>
+                <select name="satker_id" required
+                    class="w-full bg-gray-900/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                    <option value="">-- Pilih Satker --</option>
+                    @foreach($satkers as $satker)
+                        <template x-if="formData.satker_id != {{ $satker->id }}">
+                            <option value="{{ $satker->id }}">{{ $satker->nama_satker }}</option>
+                        </template>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Jumlah Dikirim</label>
+                <input type="number" name="jumlah_transfer" required min="1" :max="formData.jumlah"
+                    class="w-full bg-gray-900/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500 font-mono text-xl">
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-800 text-decoration-none">
+                <button type="button" @click="showTransferModal = false"
+                    class="px-6 py-2.5 text-sm font-semibold text-gray-400 hover:text-white transition-colors">
+                    Batal
+                </button>
+                <button type="submit"
+                    class="px-8 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary-500/20">
+                    Kirim Sekarang
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>

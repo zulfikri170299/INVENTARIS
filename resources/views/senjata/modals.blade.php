@@ -59,12 +59,12 @@
                         <input type="text" name="no_senpi" placeholder="Contoh: AB-123456"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
-                    <div>
+                    <div x-show="addStatus === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Penanggung Jawab</label>
                         <input type="text" name="penanggung_jawab"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
-                    <div>
+                    <div x-show="addStatus === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Pangkat/NRP</label>
                         <input type="text" name="nrp"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
@@ -78,7 +78,7 @@
                             <option value="Rusak Berat">Rusak Berat</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="hidden">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Status Penyimpanan</label>
                         <select name="status_penyimpanan" x-model="addStatus"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
@@ -86,7 +86,7 @@
                             <option value="Personel">Pegang Personel</option>
                         </select>
                     </div>
-                    <div>
+                    <div x-show="addStatus === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Masa Berlaku SIMSA</label>
                         <input type="date" name="masa_berlaku_simsa"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
@@ -114,14 +114,14 @@
                                 @if($availableAmunisi->isNotEmpty())
                                     <div x-show="!addAmunisiLainnya">
                                         <select name="jenis_amunisi_dibawa" :disabled="addAmunisiLainnya" @change="
-                                                                        if($event.target.value === '__lainnya__') { 
-                                                                            addAmunisiLainnya = true; 
-                                                                            $event.target.value = ''; 
-                                                                            currentStock = 0;
-                                                                        } else {
-                                                                            currentStock = stocks[$event.target.value] || 0;
-                                                                        }
-                                                                    "
+                                                                            if($event.target.value === '__lainnya__') { 
+                                                                                addAmunisiLainnya = true; 
+                                                                                $event.target.value = ''; 
+                                                                                currentStock = 0;
+                                                                            } else {
+                                                                                currentStock = stocks[$event.target.value] || 0;
+                                                                            }
+                                                                        "
                                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-orange-500 focus:border-orange-500">
                                             <option value="">-- Pilih Jenis Amunisi --</option>
                                             @foreach($availableAmunisi as $amunisi)
@@ -250,12 +250,12 @@
                         <input type="text" name="no_senpi" x-model="formData.no_senpi"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
-                    <div>
+                    <div x-show="formData.status_penyimpanan === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Penanggung Jawab</label>
                         <input type="text" name="penanggung_jawab" x-model="formData.penanggung_jawab"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
                     </div>
-                    <div>
+                    <div x-show="formData.status_penyimpanan === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Pangkat/NRP</label>
                         <input type="text" name="nrp" x-model="formData.nrp"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
@@ -277,7 +277,7 @@
                             <option value="Rusak Berat">Rusak Berat</option>
                         </select>
                     </div>
-                    <div>
+                    <div x-show="formData.status_penyimpanan === 'Personel'">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Masa Berlaku SIMSA</label>
                         <input type="date" name="masa_berlaku_simsa" x-model="formData.masa_berlaku_simsa"
                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
@@ -318,15 +318,15 @@
                                 @if($availableAmunisi->isNotEmpty())
                                     <div x-show="!editAmunisiLainnya">
                                         <select name="jenis_amunisi_dibawa" :disabled="editAmunisiLainnya" @change="
-                                                                        if($event.target.value === '__lainnya__') { 
-                                                                            editAmunisiLainnya = true; 
-                                                                            $event.target.value = ''; 
-                                                                            currentStock = 0;
-                                                                        } else { 
-                                                                            formData.jenis_amunisi_dibawa = $event.target.value; 
-                                                                            currentStock = stocks[$event.target.value] || 0;
-                                                                        }
-                                                                    "
+                                                                            if($event.target.value === '__lainnya__') { 
+                                                                                editAmunisiLainnya = true; 
+                                                                                $event.target.value = ''; 
+                                                                                currentStock = 0;
+                                                                            } else { 
+                                                                                formData.jenis_amunisi_dibawa = $event.target.value; 
+                                                                                currentStock = stocks[$event.target.value] || 0;
+                                                                            }
+                                                                        "
                                             class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-orange-500 focus:border-orange-500">
                                             <option value="">-- Pilih Jenis Amunisi --</option>
                                             @foreach($availableAmunisi as $amunisi)
@@ -419,20 +419,22 @@
                     <i class="ph ph-info mr-2"></i> Panduan Kolom Excel
                 </h4>
                 <ul class="text-[11px] text-gray-400 space-y-1">
-                    <li><span class="text-gray-300 font-medium">Wajib:</span> <code
-                            class="text-primary-300">jenis_senpi</code>, <code class="text-primary-300">laras</code>
-                        (Panjang/Pendek), <code class="text-primary-300">nup</code>, <code
-                            class="text-primary-300">no_senpi</code>, <code
-                            class="text-primary-300">penanggung_jawab</code>, <code
-                            class="text-primary-300">pangkat_nrp</code>,
-                        <code class="text-primary-300">status_penyimpanan</code>
-                    </li>
-                    <li><span class="text-gray-300 font-medium">Opsional:</span> <code
-                            class="text-gray-300">kondisi</code>, <code class="text-gray-300">masa_berlaku_simsa</code>,
-                        <code class="text-gray-300">keterangan</code>
-                    </li>
-                </ul>
-                <a href="{{ route('senjata.download-template') }}"
+                <!-- Panduan Gudang -->
+                <div x-show="addStatus === 'Gudang'">
+                    <ul class="text-[11px] text-gray-400 space-y-1">
+                        <li><span class="text-gray-300 font-medium">Wajib:</span> <code class="text-primary-300">jenis_senpi</code>, <code class="text-primary-300">laras</code> (Panjang/Pendek)</li>
+                        <li><span class="text-gray-300 font-medium">Opsional:</span> <code class="text-gray-300">nup</code>, <code class="text-gray-300">no_senpi</code>, <code class="text-gray-300">kondisi</code>, <code class="text-gray-300">keterangan</code></li>
+                    </ul>
+                </div>
+
+                <!-- Panduan Personel -->
+                <div x-show="addStatus === 'Personel'">
+                    <ul class="text-[11px] text-gray-400 space-y-1">
+                        <li><span class="text-gray-300 font-medium">Wajib:</span> <code class="text-primary-300">jenis_senpi</code>, <code class="text-primary-300">laras</code> (Panjang/Pendek), <code class="text-primary-300">penanggung_jawab</code>, <code class="text-primary-300">pangkat_nrp</code></li>
+                        <li><span class="text-gray-300 font-medium">Opsional:</span> <code class="text-gray-300">nup</code>, <code class="text-gray-300">no_senpi</code>, <code class="text-gray-300">kondisi</code>, <code class="text-gray-300">masa_berlaku_simsa</code>, <code class="text-gray-300">jenis_amunisi_dibawa</code>, <code class="text-gray-300">jumlah_amunisi_dibawa</code>, <code class="text-gray-300">keterangan</code></li>
+                    </ul>
+                </div>
+                <a :href="'{{ route('senjata.download-template') }}?context=' + (addStatus === 'Gudang' ? 'Gudang' : 'Personel')"
                     class="inline-flex items-center mt-3 text-[11px] font-bold text-primary-400 hover:text-primary-300 transition-colors">
                     <i class="ph ph-file-arrow-down mr-1.5 text-sm"></i> Download Format Excel
                 </a>
@@ -440,6 +442,7 @@
 
             <form @submit.prevent="handleImport(event)" enctype="multipart/form-data" class="space-y-5">
                 @csrf
+                <input type="hidden" name="context" :value="addStatus === 'Gudang' ? 'Gudang' : 'Personel'">
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-2">Pilih File Excel (.xlsx, .csv)</label>
                     <input type="file" name="file" required
@@ -642,6 +645,66 @@
                         :class="aksi === 'kembali' ? 'bg-primary-600 hover:bg-primary-500 shadow-primary-500/30' : 'bg-red-600 hover:bg-red-500 shadow-red-500/30'">
                         <span x-text="aksi === 'kembali' ? 'Kembalikan ke Gudang' : 'Konfirmasi Pakai Amunisi'"></span>
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div x-show="showTransferModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div x-show="showTransferModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" class="fixed inset-0 transition-opacity bg-black/60 backdrop-blur-sm"
+            @click="showTransferModal = false"></div>
+
+        <div x-show="showTransferModal" x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            class="inline-block w-full max-w-md p-8 my-8 overflow-hidden text-left align-middle transition-all transform glass-card rounded-3xl shadow-2xl relative">
+
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white">Mutasi Senjata</h3>
+                <button @click="showTransferModal = false" class="text-gray-400 hover:text-white"><i
+                        class="ph ph-x text-2xl"></i></button>
+            </div>
+
+            <div class="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4 mb-6 text-sm text-gray-300">
+                <p>Anda akan memindahkan <span class="font-bold text-white" x-text="formData.jenis_senpi"></span>
+                    dengan No. Senpi <span class="font-bold text-white" x-text="formData.no_senpi"></span> ke satker
+                    lain.</p>
+                <template x-if="formData.status_penyimpanan === 'Personel' && formData.jumlah_amunisi_dibawa > 0">
+                    <div
+                        class="mt-2 p-2 bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 text-xs text-decoration-none">
+                        <i class="ph ph-warning-circle mr-1"></i>
+                        Amunisi yang dibawa personel (<span x-text="formData.jumlah_amunisi_dibawa"></span> butir) akan
+                        otomatis dikembalikan ke gudang satker asal sebelum mutasi.
+                    </div>
+                </template>
+            </div>
+
+            <form :action="'{{ url('senjata') }}/' + formData.id + '/transfer'" method="POST" class="space-y-5">
+                @csrf
+                <input type="hidden" name="old_satker_id" :value="formData.satker_id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Pilih Satker Tujuan</label>
+                    <select name="satker_id" required
+                        class="w-full bg-gray-800/50 border border-gray-700 text-gray-100 rounded-xl px-4 py-3 focus:ring-primary-500">
+                        <option value="">-- Pilih Satker --</option>
+                        @foreach($satkers as $satker)
+                            <template x-if="formData.satker_id != {{ $satker->id }}">
+                                <option value="{{ $satker->id }}">{{ $satker->nama_satker }}</option>
+                            </template>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" @click="showTransferModal = false"
+                        class="px-6 py-2.5 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-all">Batal</button>
+                    <button type="submit"
+                        class="px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 shadow-lg shadow-primary-500/30 transition-all">Kirim
+                        Sekarang</button>
                 </div>
             </form>
         </div>

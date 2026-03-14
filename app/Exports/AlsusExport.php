@@ -25,12 +25,12 @@ class AlsusExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSiz
     public function headings(): array
     {
         return [
-            'No',
-            'Satker',
-            'Jenis Barang',
+            'NO',
+            'SATKER',
+            'JENIS BARANG',
             'NUP',
-            'Kondisi',
-            'Keterangan',
+            'KONDISI',
+            'KETERANGAN',
         ];
     }
 

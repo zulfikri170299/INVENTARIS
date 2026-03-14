@@ -25,12 +25,12 @@ class AmunisiExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoS
     public function headings(): array
     {
         return [
-            'No',
-            'Satker',
-            'Jenis Amunisi',
-            'Jumlah',
-            'Status Penyimpanan',
-            'Keterangan',
+            'NO',
+            'SATKER',
+            'JENIS AMUNISI',
+            'JUMLAH',
+            'STATUS PENYIMPANAN',
+            'KETERANGAN',
         ];
     }
 

@@ -19,7 +19,7 @@ class KendaraanController extends Controller
     {
         $query = Kendaraan::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -66,7 +66,7 @@ class KendaraanController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -95,7 +95,7 @@ class KendaraanController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $validated['satker_id'] = auth()->user()->satker_id;
         }
 
@@ -213,7 +213,7 @@ class KendaraanController extends Controller
         $query = Kendaraan::with('satker');
         $satker = null;
 
-        if (auth()->user()->satker_id) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $satkerId = auth()->user()->satker_id;
             $query->where('satker_id', $satkerId);
             $satker = Satker::find($satkerId);
@@ -233,7 +233,7 @@ class KendaraanController extends Controller
     {
         $query = Kendaraan::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
@@ -261,5 +261,88 @@ class KendaraanController extends Controller
     public function downloadTemplate()
     {
         return Excel::download(new KendaraanTemplateExport, 'format-impor-kendaraan.xlsx');
+    }
+
+    public function transfer(Request $request, $id)
+    {
+        $kendaraan = Kendaraan::findOrFail($id);
+        $request->validate([
+            'satker_id' => 'required|exists:satkers,id',
+        ]);
+
+        $oldSatker = $kendaraan->satker->nama_satker ?? 'Satker Lama';
+        $newSatker = Satker::findOrFail($request->satker_id)->nama_satker;
+
+        $kendaraan->update(['satker_id' => $request->satker_id]);
+
+        $this->logActivity('Mutasi Kendaraan', "Memindahkan kendaraan " . $kendaraan->jenis_kendaraan . " (Nopol: " . ($kendaraan->nopol ?? '-') . ") dari $oldSatker ke $newSatker", 'Kendaraan');
+
+        return redirect()->route('kendaraan.index')->with('success', 'Data kendaraan berhasil dipindahkan ke ' . $newSatker);
+    }
+
+    public function laporanRingkas(Request $request)
+    {
+        $satkerId = null;
+        $jenisRoda = $request->input('jenis_roda');
+        $kondisi = $request->input('kondisi');
+
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2'])) {
+            $satkerId = auth()->user()->satker_id;
+        }
+
+        if ($request->filled('satker_id')) {
+            $satkerId = $request->satker_id;
+        }
+
+        $query = Kendaraan::with('satker');
+        if ($satkerId) {
+            $query->where('satker_id', $satkerId);
+        }
+        if ($jenisRoda) {
+            $query->where('jenis_roda', $jenisRoda);
+        }
+        if ($kondisi) {
+            $query->where('kondisi', $kondisi);
+        }
+
+        $kendaraans = $query->get();
+
+        // Group by satker + jenis_roda
+        $grouped = $kendaraans->groupBy(function($item) {
+            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_roda;
+        });
+
+        $data = collect();
+        foreach ($grouped as $key => $items) {
+            list($satker, $roda) = explode('|', $key);
+
+            $statusCounts = $items->groupBy('kondisi')->map->count();
+
+            $data->push([
+                'satker' => $satker,
+                'jenis_roda' => $roda,
+                'baik' => $statusCounts->get('Baik', 0),
+                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
+                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
+                'jumlah' => $items->count(),
+            ]);
+        }
+
+        $data = $data->sortBy('satker')->values();
+
+        $stats = [
+            'total' => $kendaraans->count(),
+            'total_baik' => $kendaraans->where('kondisi', 'Baik')->count(),
+            'total_rusak_ringan' => $kendaraans->where('kondisi', 'Rusak Ringan')->count(),
+            'total_rusak_berat' => $kendaraans->where('kondisi', 'Rusak Berat')->count(),
+            'total_r2' => $kendaraans->where('jenis_roda', 'R2')->count(),
+            'total_r4' => $kendaraans->where('jenis_roda', 'R4')->count(),
+            'total_r6' => $kendaraans->where('jenis_roda', 'R6')->count(),
+            'total_r8' => $kendaraans->where('jenis_roda', 'R8')->count(),
+        ];
+
+        $satkers = Satker::all();
+
+        return view('kendaraan.laporan-ringkas', compact('data', 'stats', 'satkers', 'satkerId', 'jenisRoda', 'kondisi'));
     }
 }

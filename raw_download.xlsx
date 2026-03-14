@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="4bs8Sx6mfm57RKoo792zQM7aZV3ba4FeELpshyLu">
+
+    <title>Laravel</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-100 antialiased min-h-screen flex flex-col justify-center items-center">
+    <div class="w-full max-w-md px-6 py-4">
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl animate-fade-in-up">
+        <!-- Logo / Header -->
+        <div class="text-center mb-8 font-outfit">
+            <div class="flex items-center justify-center mb-4">
+                <img src="http://127.0.0.1:8000/rolog.png" alt="Logo" class="h-16 mr-4 drop-shadow-lg">
+                <h1
+                    class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 tracking-tight uppercase">
+                    INVENLOG
+                </h1>
+            </div>
+            <p class="text-gray-400 text-sm mt-2">Sistem Inventaris Logistik</p>
+        </div>
+
+        <!-- Session Status -->
+        
+        <form method="POST" action="http://127.0.0.1:8000/login" class="space-y-6">
+            <input type="hidden" name="_token" value="4bs8Sx6mfm57RKoo792zQM7aZV3ba4FeELpshyLu" autocomplete="off">
+            <!-- Email Address -->
+            <div class="relative group">
+                <input id="email" type="email" name="email" :value="old('email')" required autofocus
+                    autocomplete="username"
+                    class="peer w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
+                    placeholder="Email Address" />
+                <label for="email"
+                    class="absolute left-4 -top-2.5 bg-[#131d33] px-1 text-sm text-gray-400 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-gray-200 peer-focus:text-sm">
+                    Email Address
+                </label>
+                            </div>
+
+            <!-- Password -->
+            <div class="relative group" x-data="{ show: false }">
+                <input id="password" :type="show ? 'text' : 'password'" name="password" required
+                    autocomplete="current-password"
+                    class="peer w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
+                    placeholder="Password" />
+                <label for="password"
+                    class="absolute left-4 -top-2.5 bg-[#131d33] px-1 text-sm text-gray-400 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-gray-200 peer-focus:text-sm">
+                    Password
+                </label>
+                <button type="button" @click="show = !show"
+                    class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-200 transition-colors focus:outline-none z-10">
+                    <i class="ph ph-eye text-xl" x-show="!show"></i>
+                    <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
+                </button>
+                            </div>
+
+            <!-- Remember Me -->
+            <div class="flex items-center justify-between">
+                <label for="remember_me" class="inline-flex items-center cursor-pointer">
+                    <input id="remember_me" type="checkbox"
+                        class="rounded border-gray-700 bg-gray-800 text-primary-500 focus:ring-offset-gray-900 focus:ring-primary-500"
+                        name="remember">
+                    <span class="ms-2 text-sm text-gray-400">Remember me</span>
+                </label>
+
+                                    <a class="underline text-sm text-gray-400 hover:text-primary-400 transition-colors"
+                        href="http://127.0.0.1:8000/forgot-password">
+                        Lupa password?
+                    </a>
+                            </div>
+
+            <div class="pt-2">
+                <button type="submit"
+                    class="w-full py-3.5 px-4 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 focus:ring-offset-gray-900 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                    Log in
+                </button>
+            </div>
+        </form>
+    </div>
+    </div>
+</body>
+
+</html>

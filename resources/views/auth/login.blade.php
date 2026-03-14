@@ -5,8 +5,8 @@
             <div class="flex items-center justify-center mb-4">
                 <img src="{{ asset('rolog.png') }}" alt="Logo" class="h-16 mr-4 drop-shadow-lg">
                 <h1
-                    class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 tracking-tight uppercase">
-                    INVENLOG
+                    class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 tracking-tight uppercase">
+                    Invenlog <br> Polda NTB
                 </h1>
             </div>
             <p class="text-gray-400 text-sm mt-2">Sistem Inventaris Logistik</p>

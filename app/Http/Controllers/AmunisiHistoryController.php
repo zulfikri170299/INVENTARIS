@@ -12,12 +12,20 @@ class AmunisiHistoryController extends Controller
     {
         $query = AmunisiHistory::with('satker');
 
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin'])) {
+        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
         if ($request->filled('satker_id')) {
             $query->where('satker_id', $request->satker_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('tanggal', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('tanggal', '<=', $request->end_date);
         }
 
         if ($request->filled('search')) {
