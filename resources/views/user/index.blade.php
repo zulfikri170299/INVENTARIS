@@ -24,16 +24,43 @@
     }">
 
         <!-- Action Bar -->
-        <div class="glass-card p-2 px-3 rounded-xl flex items-center justify-between gap-3 animate-fade-in">
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between mb-6 relative z-50 gap-3 animate-fade-in">
             <div class="flex items-center gap-2">
                 <i class="ph ph-users text-primary-500 text-lg"></i>
                 <h3 class="text-xs font-bold text-white uppercase tracking-wider">Manajemen User</h3>
             </div>
-            <button @click="showAddModal = true"
-                class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
-                <i class="ph ph-user-plus mr-1.5 text-lg"></i>
-                Tambah User
-            </button>
+            <div class="flex items-center space-x-2">
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button type="button" @click="open = !open"
+                        class="btn-compact bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold transition-all flex items-center border border-gray-700">
+                        <i class="ph ph-file-arrow-down mr-1.5 text-lg text-primary-400"></i>
+                        Export
+                        <i class="ph ph-caret-down ml-1.5 text-xs"></i>
+                    </button>
+                    <div x-show="open" 
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        class="absolute right-0 mt-2 w-40 rounded-xl shadow-2xl bg-gray-800 border border-gray-700 z-50 overflow-hidden"
+                        style="display: none;">
+                        <a href="{{ route('users.export-pdf', request()->all()) }}" 
+                            class="flex items-center px-4 py-2.5 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                            <i class="ph ph-file-pdf mr-2 text-base text-red-500"></i>
+                            Export PDF
+                        </a>
+                        <a href="{{ route('users.export-excel', request()->all()) }}" 
+                            class="flex items-center px-4 py-2.5 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-t border-gray-700/50">
+                            <i class="ph ph-file-xls mr-2 text-base text-green-500"></i>
+                            Export Excel
+                        </a>
+                    </div>
+                </div>
+                <button @click="showAddModal = true"
+                    class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold shadow-lg shadow-primary-500/20 transition-all flex items-center">
+                    <i class="ph ph-user-plus mr-1.5 text-lg"></i>
+                    Tambah User
+                </button>
+            </div>
         </div>
 
         <!-- Table -->

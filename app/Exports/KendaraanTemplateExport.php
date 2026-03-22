@@ -10,6 +10,7 @@ class KendaraanTemplateExport implements WithHeadings, ShouldAutoSize
     public function headings(): array
     {
         return [
+            'NO',
             'SATKER ID',
             'JENIS RODA',
             'JENIS KENDARAAN',

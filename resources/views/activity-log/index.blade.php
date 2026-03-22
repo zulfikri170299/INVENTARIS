@@ -5,7 +5,7 @@
         perPage: {{ request('per_page', 20) }}
     }">
         <!-- Action & Filter Bar -->
-        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between mb-6 relative z-50 gap-3 animate-fade-in">
             <!-- Left: Module Title -->
             <div class="flex items-center gap-2">
                 <i class="ph ph-clock-counter-clockwise text-primary-500 text-lg"></i>
@@ -33,6 +33,35 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
                         class="bg-gray-800/50 border border-gray-700 text-gray-200 text-[11px] rounded-lg pl-8 pr-3 py-1.5 focus:ring-primary-500 w-32 lg:w-40 transition-all">
                     <i class="ph ph-magnifying-glass absolute left-2.5 top-2 text-gray-500 text-xs"></i>
+                </div>
+                
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button type="button" @click="open = !open"
+                        class="btn-compact bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold transition-all flex items-center border border-gray-700">
+                        <i class="ph ph-file-arrow-down mr-1.5 text-lg text-primary-400"></i>
+                        Export
+                        <i class="ph ph-caret-down ml-1.5 text-xs"></i>
+                    </button>
+                    <div x-show="open" 
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-40 rounded-xl shadow-2xl bg-gray-800 border border-gray-700 z-50 overflow-hidden"
+                        style="display: none;">
+                        <a href="{{ route('activity-logs.export-pdf', request()->all()) }}" 
+                            class="flex items-center px-4 py-2.5 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                            <i class="ph ph-file-pdf mr-2 text-base text-red-500"></i>
+                            Export PDF
+                        </a>
+                        <a href="{{ route('activity-logs.export-excel', request()->all()) }}" 
+                            class="flex items-center px-4 py-2.5 text-[11px] text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-t border-gray-700/50">
+                            <i class="ph ph-file-xls mr-2 text-base text-green-500"></i>
+                            Export Excel
+                        </a>
+                    </div>
                 </div>
                 
                 <a href="{{ route('activity-logs.index') }}" class="p-1.5 bg-gray-800 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-colors" title="Reset">

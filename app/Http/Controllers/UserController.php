@@ -11,6 +11,9 @@ use Illuminate\Validation\Rules;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Traits\LogActivity;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\UserExport;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -27,15 +30,45 @@ class UserController extends Controller implements HasMiddleware
         ];
     }
 
+    private function getFilteredQuery(Request $request)
+    {
+        $query = User::with('satker');
+
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%')
+                  ->orWhere('role', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        return $query->latest();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $users = User::with('satker')->latest()->paginate($perPage)->withQueryString();
+        $users = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
+
         return view('user.index', compact('users', 'satkers'));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
+        return Excel::download(new UserExport($query), 'data-user.xlsx');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $users = $this->getFilteredQuery($request)->get();
+        $pdf = Pdf::loadView('user.pdf', compact('users'));
+        return $pdf->download('data-user.pdf');
     }
 
     /**

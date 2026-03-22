@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class AmunisiExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize
+class UserExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize
 {
     protected $query;
     protected $no = 0;
@@ -27,21 +27,21 @@ class AmunisiExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoS
         return [
             'NO',
             'SATKER',
-            'JENIS AMUNISI',
-            'JUMLAH DI GUDANG',
-            'KETERANGAN',
+            'NAMA',
+            'EMAIL',
+            'ROLE',
         ];
     }
 
-    public function map($amunisi): array
+    public function map($user): array
     {
         $this->no++;
         return [
             $this->no,
-            $amunisi->satker->nama_satker ?? '-',
-            $amunisi->jenis_amunisi,
-            $amunisi->jumlah,
-            $amunisi->keterangan,
+            $user->satker->nama_satker ?? 'Global / Admin',
+            $user->name,
+            $user->email,
+            $user->role,
         ];
     }
 }

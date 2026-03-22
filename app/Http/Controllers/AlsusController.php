@@ -17,7 +17,7 @@ use App\Traits\LogActivity;
 class AlsusController extends Controller
 {
     use LogActivity;
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request)
     {
         $query = Alsus::with('satker');
 
@@ -26,8 +26,11 @@ class AlsusController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('jenis_barang', 'like', '%' . $search . '%')
+                  ->orWhere('nup', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('satker_id')) {
@@ -38,8 +41,14 @@ class AlsusController extends Controller
             $query->where('kondisi', $request->kondisi);
         }
 
+        return $query->latest();
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $alsuses = $query->latest()->paginate($perPage)->withQueryString();
+        $alsuses = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('alsus.index', compact('alsuses', 'satkers'));
@@ -114,25 +123,29 @@ class AlsusController extends Controller
         foreach ($rows as $row) {
             if (!isset($row['jenis_barang']) || empty($row['jenis_barang'])) continue;
 
-            $existing = Alsus::where('nup', $row['nup'])->first();
+            $row_satker_id = $satker_id ?? $row['satker_id'] ?? null;
+            if (!$row_satker_id) continue;
+
+            $nup = $row['nup'] ?? null;
+            $existing = !empty($nup) ? Alsus::where('nup', $nup)->first() : null;
 
             if ($existing) {
                 $conflicts[] = [
                     'existing' => $existing,
                     'new' => [
-                        'satker_id' => $satker_id,
+                        'satker_id' => $row_satker_id,
                         'jenis_barang' => $row['jenis_barang'],
-                        'nup' => $row['nup'],
-                        'kondisi' => $row['kondisi'] ?? 'Baik',
+                        'nup' => $nup,
+                        'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
                         'keterangan' => $row['keterangan'] ?? null,
                     ]
                 ];
             } else {
                 $validData[] = [
-                    'satker_id' => $satker_id,
+                    'satker_id' => $row_satker_id,
                     'jenis_barang' => $row['jenis_barang'],
-                    'nup' => $row['nup'],
-                    'kondisi' => $row['kondisi'] ?? 'Baik',
+                    'nup' => $nup,
+                    'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
                     'keterangan' => $row['keterangan'] ?? null,
                 ];
             }
@@ -178,17 +191,13 @@ class AlsusController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Alsus::with('satker');
+        $query = $this->getFilteredQuery($request);
         $satker = null;
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $satkerId = auth()->user()->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find(auth()->user()->satker_id);
         } elseif ($request->filled('satker_id')) {
-            $satkerId = $request->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find($request->satker_id);
         }
 
         $alsuses = $query->get();
@@ -199,25 +208,7 @@ class AlsusController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $query = Alsus::with('satker');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
-        }
-
+        $query = $this->getFilteredQuery($request);
         return Excel::download(new AlsusExport($query), 'laporan-alsus.xlsx');
     }
 
@@ -258,67 +249,74 @@ class AlsusController extends Controller
         }
 
         // Get Alsus data
-        $alsus = collect();
+        $dataAlsus = collect();
+        $totalAlsus = 0;
+        $alsusBaik = 0; $alsusRR = 0; $alsusRB = 0;
+        
         if ($tipe === 'semua' || $tipe === 'alsus') {
-            $alsusQuery = Alsus::with('satker');
-            if ($satkerId) {
-                $alsusQuery->where('satker_id', $satkerId);
-            }
-            if ($kondisi) {
-                $alsusQuery->where('kondisi', $kondisi);
-            }
-            $alsus = $alsusQuery->get();
+            $baseQuery = Alsus::query();
+            if ($satkerId) $baseQuery->where('satker_id', $satkerId);
+            if ($kondisi) $baseQuery->where('kondisi', $kondisi);
+
+            $totalAlsus = (clone $baseQuery)->count();
+            $alsusBaik = (clone $baseQuery)->where('kondisi', 'Baik')->count();
+            $alsusRR = (clone $baseQuery)->where('kondisi', 'Rusak Ringan')->count();
+            $alsusRB = (clone $baseQuery)->where('kondisi', 'Rusak Berat')->count();
+
+            $dataAlsus = $baseQuery->select('satker_id', 'jenis_barang')
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Baik' THEN 1 ELSE 0 END) as baik")
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Ringan' THEN 1 ELSE 0 END) as rusak_ringan")
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Berat' THEN 1 ELSE 0 END) as rusak_berat")
+                ->selectRaw("COUNT(*) as jumlah")
+                ->groupBy('satker_id', 'jenis_barang')
+                ->with('satker')
+                ->get();
         }
 
         // Get Alsintor data
-        $alsintor = collect();
+        $dataAlsintor = collect();
+        $totalAlsintor = 0;
+        $alsintorBaik = 0; $alsintorRR = 0; $alsintorRB = 0;
+
         if ($tipe === 'semua' || $tipe === 'alsintor') {
-            $alsintorQuery = Alsintor::with('satker');
-            if ($satkerId) {
-                $alsintorQuery->where('satker_id', $satkerId);
-            }
-            if ($kondisi) {
-                $alsintorQuery->where('kondisi', $kondisi);
-            }
-            $alsintor = $alsintorQuery->get();
+            $baseQuery = Alsintor::query();
+            if ($satkerId) $baseQuery->where('satker_id', $satkerId);
+            if ($kondisi) $baseQuery->where('kondisi', $kondisi);
+
+            $totalAlsintor = (clone $baseQuery)->count();
+            $alsintorBaik = (clone $baseQuery)->where('kondisi', 'Baik')->count();
+            $alsintorRR = (clone $baseQuery)->where('kondisi', 'Rusak Ringan')->count();
+            $alsintorRB = (clone $baseQuery)->where('kondisi', 'Rusak Berat')->count();
+
+            $dataAlsintor = $baseQuery->select('satker_id', 'jenis_barang')
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Baik' THEN 1 ELSE 0 END) as baik")
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Ringan' THEN 1 ELSE 0 END) as rusak_ringan")
+                ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Berat' THEN 1 ELSE 0 END) as rusak_berat")
+                ->selectRaw("COUNT(*) as jumlah")
+                ->groupBy('satker_id', 'jenis_barang')
+                ->with('satker')
+                ->get();
         }
 
-        // Combine and group
-        $combined = $alsus->concat($alsintor);
-
-        $grouped = $combined->groupBy(function($item) {
-            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_barang;
-        });
-
-        $data = collect();
-        foreach ($grouped as $key => $items) {
-            list($satker, $barang) = explode('|', $key);
-
-            $statusCounts = $items->groupBy('kondisi')->map(function($group) {
-                return $group->count();
-            });
-
-            $data->push([
-                'satker' => $satker,
-                'jenis_barang' => $barang,
-                'baik' => $statusCounts->get('Baik', 0),
-                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
-                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
-                'jumlah' => $items->count(),
-            ]);
-        }
-
-        // Sort by satker name
-        $data = $data->sortBy('satker')->values();
+        $data = $dataAlsus->concat($dataAlsintor)->map(function($item) {
+            return [
+                'satker' => $item->satker ? $item->satker->nama_satker : 'Unknown',
+                'jenis_barang' => $item->jenis_barang,
+                'baik' => (int)$item->baik,
+                'rusak_ringan' => (int)$item->rusak_ringan,
+                'rusak_berat' => (int)$item->rusak_berat,
+                'jumlah' => (int)$item->jumlah,
+            ];
+        })->sortBy('satker')->values();
 
         // Statistics
         $stats = [
-            'total_alsus' => $alsus->count(),
-            'total_alsintor' => $alsintor->count(),
-            'total_baik' => $combined->where('kondisi', 'Baik')->count(),
-            'total_rusak_ringan' => $combined->where('kondisi', 'Rusak Ringan')->count(),
-            'total_rusak_berat' => $combined->where('kondisi', 'Rusak Berat')->count(),
-            'total' => $combined->count(),
+            'total_alsus' => $totalAlsus,
+            'total_alsintor' => $totalAlsintor,
+            'total_baik' => $alsusBaik + $alsintorBaik,
+            'total_rusak_ringan' => $alsusRR + $alsintorRR,
+            'total_rusak_berat' => $alsusRB + $alsintorRB,
+            'total' => $totalAlsus + $totalAlsintor,
         ];
 
         $satkers = Satker::all();

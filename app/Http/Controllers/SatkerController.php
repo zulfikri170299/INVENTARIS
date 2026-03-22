@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Traits\LogActivity;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\SatkerExport;
 
 class SatkerController extends Controller implements HasMiddleware
 {
@@ -29,14 +32,37 @@ class SatkerController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
+    private function getFilteredQuery(Request $request)
+    {
+        $query = Satker::withCount(['senjatas', 'kendaraans', 'alsuses', 'alsintors', 'amunisis']);
+
+        if ($request->filled('search')) {
+            $query->where('nama_satker', 'like', '%' . $request->search . '%');
+        }
+
+        return $query->latest();
+    }
+
     public function index(Request $request)
     {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $satkers = Satker::withCount(['senjatas', 'kendaraans', 'alsuses', 'alsintors', 'amunisis'])
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
+        $satkers = $query->paginate($perPage)->withQueryString();
+
         return view('satker.index', compact('satkers'));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
+        return Excel::download(new SatkerExport($query), 'data-satker.xlsx');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $satkers = $this->getFilteredQuery($request)->get();
+        $pdf = Pdf::loadView('satker.pdf', compact('satkers'));
+        return $pdf->download('data-satker.pdf');
     }
 
     /**

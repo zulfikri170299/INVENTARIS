@@ -46,36 +46,49 @@
     <table>
         <thead>
             <tr>
-                <th>No</th>
+                <th style="width: 30px; text-align: center;">NO</th>
                 @if(!$satker)
-                    <th>Satker</th>
+                    <th>SATKER</th>
                 @endif
-                <th>Jenis Senpi</th>
-                <th>NUP</th>
-                <th>No. Senpi</th>
-                <th>Kondisi</th>
-                <th>Penanggung Jawab</th>
-                <th>Pangkat/NRP</th>
-                <th>Status</th>
-                <th>Masa Berlaku SIMSA</th>
+                <th>JENIS SENJATA</th>
+                <th style="width: 80px;">LARAS</th>
+                @if(($context ?? 'Gudang') === 'Personel')
+                    <th>NUP</th>
+                    <th>NO. SENPI</th>
+                    <th>KONDISI</th>
+                    <th>JUMLAH AMUNISI</th>
+                    <th>NAMA PENGGUNA</th>
+                    <th>PANGKAT/NRP</th>
+                    <th>MASA SIMSA</th>
+                @else
+                    <th>NUP</th>
+                    <th>NO. SENPI</th>
+                    <th>KONDISI</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @foreach($senjatas as $index => $item)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td style="text-align: center;">{{ $index + 1 }}</td>
                     @if(!$satker)
                         <td>{{ $item->satker->nama_satker ?? '-' }}</td>
                     @endif
-                    <td>{{ $item->jenis_senpi }}</td>
-                    <td>{{ $item->nup ?? '-' }}</td>
-                    <td>{{ $item->no_senpi ?? '-' }}</td>
-                    <td>{{ $item->kondisi }}</td>
-                    <td>{{ $item->penanggung_jawab ?? '-' }}</td>
-                    <td>{{ $item->nrp ?? '-' }}</td>
-                    <td>{{ $item->status_penyimpanan ?? '-' }}</td>
-                    <td>{{ $item->masa_berlaku_simsa ? \Carbon\Carbon::parse($item->masa_berlaku_simsa)->format('d/m/Y') : '-' }}
-                    </td>
+                    <td style="font-weight: bold;">{{ $item->jenis_senpi }}</td>
+                    <td>{{ $item->laras }}</td>
+                    @if(($context ?? 'Gudang') === 'Personel')
+                        <td>{{ $item->nup ?? '-' }}</td>
+                        <td>{{ $item->no_senpi ?? '-' }}</td>
+                        <td>{{ $item->kondisi }}</td>
+                        <td style="text-align: center;">{{ $item->jumlah_amunisi_dibawa ?? 0 }}</td>
+                        <td>{{ $item->penanggung_jawab ?? '-' }}</td>
+                        <td>{{ $item->nrp ?? '-' }}</td>
+                        <td>{{ $item->masa_berlaku_simsa ? \Carbon\Carbon::parse($item->masa_berlaku_simsa)->format('d/m/Y') : '-' }}</td>
+                    @else
+                        <td>{{ $item->nup ?? '-' }}</td>
+                        <td>{{ $item->no_senpi ?? '-' }}</td>
+                        <td>{{ $item->kondisi }}</td>
+                    @endif
                 </tr>
             @endforeach
         </tbody>

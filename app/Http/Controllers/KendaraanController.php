@@ -15,7 +15,7 @@ use App\Traits\LogActivity;
 class KendaraanController extends Controller
 {
     use LogActivity;
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request)
     {
         $query = Kendaraan::with('satker');
 
@@ -24,9 +24,12 @@ class KendaraanController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('jenis_kendaraan', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%')
-                  ->orWhere('nopol', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('jenis_kendaraan', 'like', '%' . $search . '%')
+                  ->orWhere('nup', 'like', '%' . $search . '%')
+                  ->orWhere('nopol', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('satker_id')) {
@@ -41,8 +44,14 @@ class KendaraanController extends Controller
             $query->where('jenis_roda', $request->jenis_roda);
         }
 
+        return $query->latest();
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $kendaraans = $query->latest()->paginate($perPage)->withQueryString();
+        $kendaraans = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('kendaraan.index', compact('kendaraans', 'satkers'));
@@ -131,39 +140,49 @@ class KendaraanController extends Controller
         foreach ($rows as $row) {
             if (!isset($row['jenis_kendaraan']) || empty($row['jenis_kendaraan'])) continue;
 
-            // Check for existing by nopol or no_rangka
-            $existing = Kendaraan::where('nopol', $row['nopol'])
-                ->orWhere('no_rangka', $row['no_rangka'])
-                ->first();
+            $row_satker_id = $satker_id ?? $row['satker_id'] ?? null;
+            if (!$row_satker_id) continue;
+
+            $nopol = $row['nopol'] ?? null;
+            $no_rangka = $row['no_rangka'] ?? null;
+
+            // Check for existing by nopol or no_rangka (only if they are not empty)
+            $existing = null;
+            if (!empty($nopol) || !empty($no_rangka)) {
+                $existing = Kendaraan::where(function($q) use ($nopol, $no_rangka) {
+                    if (!empty($nopol)) $q->where('nopol', $nopol);
+                    if (!empty($no_rangka)) $q->orWhere('no_rangka', $no_rangka);
+                })->first();
+            }
 
             if ($existing) {
                 $conflicts[] = [
                     'existing' => $existing,
                     'new' => [
-                        'satker_id' => $satker_id,
-                        'jenis_roda' => $row['jenis_roda'] ?? 'R4',
+                        'satker_id' => $row_satker_id,
+                        'jenis_roda' => (isset($row['jenis_roda']) && in_array($row['jenis_roda'], ['R2', 'R4', 'R6'])) ? $row['jenis_roda'] : 'R4',
                         'jenis_kendaraan' => $row['jenis_kendaraan'],
-                        'nup' => $row['nup'],
-                        'no_rangka' => $row['no_rangka'],
-                        'nopol' => $row['nopol'],
-                        'kondisi' => $row['kondisi'] ?? 'Baik',
-                        'bahan_bakar' => $row['bahan_bakar'],
-                        'penanggung_jawab' => $row['penanggung_jawab'],
+                        'nup' => $row['nup'] ?? null,
+                        'no_rangka' => $no_rangka,
+                        'nopol' => $nopol,
+                        'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
+                        'bahan_bakar' => $row['bahan_bakar'] ?? '-',
+                        'penanggung_jawab' => $row['penanggung_jawab'] ?? '-',
                         'nrp' => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
                         'keterangan' => $row['keterangan'] ?? null,
                     ]
                 ];
             } else {
                 $validData[] = [
-                    'satker_id' => $satker_id,
-                    'jenis_roda' => $row['jenis_roda'] ?? 'R4',
+                    'satker_id' => $row_satker_id,
+                    'jenis_roda' => (isset($row['jenis_roda']) && in_array($row['jenis_roda'], ['R2', 'R4', 'R6'])) ? $row['jenis_roda'] : 'R4',
                     'jenis_kendaraan' => $row['jenis_kendaraan'],
-                    'nup' => $row['nup'],
-                    'no_rangka' => $row['no_rangka'],
-                    'nopol' => $row['nopol'],
-                    'kondisi' => $row['kondisi'] ?? 'Baik',
-                    'bahan_bakar' => $row['bahan_bakar'],
-                    'penanggung_jawab' => $row['penanggung_jawab'],
+                    'nup' => $row['nup'] ?? null,
+                    'no_rangka' => $no_rangka,
+                    'nopol' => $nopol,
+                    'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
+                    'bahan_bakar' => $row['bahan_bakar'] ?? '-',
+                    'penanggung_jawab' => $row['penanggung_jawab'] ?? '-',
                     'nrp' => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
                     'keterangan' => $row['keterangan'] ?? null,
                 ];
@@ -210,17 +229,13 @@ class KendaraanController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Kendaraan::with('satker');
+        $query = $this->getFilteredQuery($request);
         $satker = null;
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $satkerId = auth()->user()->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find(auth()->user()->satker_id);
         } elseif ($request->filled('satker_id')) {
-            $satkerId = $request->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find($request->satker_id);
         }
 
         $kendaraans = $query->get();
@@ -231,30 +246,7 @@ class KendaraanController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $query = Kendaraan::with('satker');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_kendaraan', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%')
-                  ->orWhere('nopol', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
-        }
-
-        if ($request->filled('jenis_roda')) {
-            $query->where('jenis_roda', $request->jenis_roda);
-        }
-
+        $query = $this->getFilteredQuery($request);
         return Excel::download(new KendaraanExport($query), 'laporan-kendaraan.xlsx');
     }
 
@@ -305,41 +297,36 @@ class KendaraanController extends Controller
             $query->where('kondisi', $kondisi);
         }
 
-        $kendaraans = $query->get();
-
-        // Group by satker + jenis_roda
-        $grouped = $kendaraans->groupBy(function($item) {
-            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_roda;
-        });
-
-        $data = collect();
-        foreach ($grouped as $key => $items) {
-            list($satker, $roda) = explode('|', $key);
-
-            $statusCounts = $items->groupBy('kondisi')->map->count();
-
-            $data->push([
-                'satker' => $satker,
-                'jenis_roda' => $roda,
-                'baik' => $statusCounts->get('Baik', 0),
-                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
-                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
-                'jumlah' => $items->count(),
-            ]);
-        }
-
-        $data = $data->sortBy('satker')->values();
-
         $stats = [
-            'total' => $kendaraans->count(),
-            'total_baik' => $kendaraans->where('kondisi', 'Baik')->count(),
-            'total_rusak_ringan' => $kendaraans->where('kondisi', 'Rusak Ringan')->count(),
-            'total_rusak_berat' => $kendaraans->where('kondisi', 'Rusak Berat')->count(),
-            'total_r2' => $kendaraans->where('jenis_roda', 'R2')->count(),
-            'total_r4' => $kendaraans->where('jenis_roda', 'R4')->count(),
-            'total_r6' => $kendaraans->where('jenis_roda', 'R6')->count(),
-            'total_r8' => $kendaraans->where('jenis_roda', 'R8')->count(),
+            'total' => (clone $query)->count(),
+            'total_baik' => (clone $query)->where('kondisi', 'Baik')->count(),
+            'total_rusak_ringan' => (clone $query)->where('kondisi', 'Rusak Ringan')->count(),
+            'total_rusak_berat' => (clone $query)->where('kondisi', 'Rusak Berat')->count(),
+            'total_r2' => (clone $query)->where('jenis_roda', 'R2')->count(),
+            'total_r4' => (clone $query)->where('jenis_roda', 'R4')->count(),
+            'total_r6' => (clone $query)->where('jenis_roda', 'R6')->count(),
+            'total_r8' => (clone $query)->where('jenis_roda', 'R8')->count(),
         ];
+
+        $data = $query->select('satker_id', 'jenis_roda')
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Baik' THEN 1 ELSE 0 END) as baik")
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Ringan' THEN 1 ELSE 0 END) as rusak_ringan")
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Berat' THEN 1 ELSE 0 END) as rusak_berat")
+            ->selectRaw("COUNT(*) as jumlah")
+            ->groupBy('satker_id', 'jenis_roda')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'satker' => $item->satker ? $item->satker->nama_satker : 'Unknown',
+                    'jenis_roda' => $item->jenis_roda,
+                    'baik' => (int)$item->baik,
+                    'rusak_ringan' => (int)$item->rusak_ringan,
+                    'rusak_berat' => (int)$item->rusak_berat,
+                    'jumlah' => (int)$item->jumlah,
+                ];
+            })
+            ->sortBy('satker')
+            ->values();
 
         $satkers = Satker::all();
 

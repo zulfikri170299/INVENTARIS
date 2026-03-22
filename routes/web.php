@@ -30,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::get('senjata/download-template', [SenjataController::class, 'downloadTemplate'])->name('senjata.download-template');
     Route::get('senjata/export-pdf', [SenjataController::class, 'exportPdf'])->name('senjata.export-pdf');
     Route::get('senjata/export-excel', [SenjataController::class, 'exportExcel'])->name('senjata.export-excel');
+    Route::get('activity-logs/export-pdf', [\App\Http\Controllers\ActivityLogController::class, 'exportPdf'])->name('activity-logs.export-pdf');
+    Route::get('activity-logs/export-excel', [\App\Http\Controllers\ActivityLogController::class, 'exportExcel'])->name('activity-logs.export-excel');
     Route::get('activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::post('senjata/{senjata}/return-amunisi', [SenjataController::class, 'returnAmunisi'])->name('senjata.return-amunisi');
     Route::post('senjata/{senjata}/transfer', [SenjataController::class, 'transfer'])->name('senjata.transfer');
@@ -71,8 +73,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('amunisi', AmunisiController::class);
 
     // Master Data
+    Route::get('users/export-pdf', [UserController::class, 'exportPdf'])->name('users.export-pdf');
+    Route::get('users/export-excel', [UserController::class, 'exportExcel'])->name('users.export-excel');
     Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::resource('users', UserController::class);
+
+    Route::get('satkers/export-pdf', [SatkerController::class, 'exportPdf'])->name('satkers.export-pdf');
+    Route::get('satkers/export-excel', [SatkerController::class, 'exportExcel'])->name('satkers.export-excel');
     Route::post('satkers/import', [SatkerController::class, 'import'])->name('satkers.import');
     Route::get('satkers/download-template', [SatkerController::class, 'downloadTemplate'])->name('satkers.download-template');
     Route::post('satkers/confirm-import', [SatkerController::class, 'confirmImport'])->name('satkers.confirm-import');

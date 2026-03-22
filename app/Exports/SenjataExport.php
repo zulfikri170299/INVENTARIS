@@ -26,57 +26,62 @@ class SenjataExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoS
 
     public function headings(): array
     {
-        $headings = [
-            'NO',
-            'SATKER',
-            'JENIS SENPI',
-            'LARAS',
-            'NUP',
-            'NO SENPI',
-            'KONDISI',
-            'KETERANGAN',
-        ];
-
         if ($this->context === 'Personel') {
-            array_splice($headings, 7, 0, [
-                'STATUS PENYIMPANAN',
-                'PENANGGUNG JAWAB',
-                'NRP',
-                'MASA BERLAKU SIMSA',
-                'JENIS AMUNISI DIBAWA',
-                'JUMLAH AMUNISI DIBAWA'
-            ]);
+            return [
+                'NO',
+                'SATKER',
+                'JENIS SENJATA',
+                'LARAS',
+                'NUP',
+                'NO. SENPI',
+                'KONDISI',
+                'JUMLAH AMUNISI',
+                'NAMA',
+                'PANGKAT/NRP',
+                'MASA SIMSA',
+                'KETERANGAN'
+            ];
         }
 
-        return $headings;
+        return [
+            'NO',
+            'SATKER',
+            'JENIS SENJATA',
+            'LARAS',
+            'NUP',
+            'NO. SENPI',
+            'KONDISI',
+        ];
     }
 
     public function map($senjata): array
     {
         $this->no++;
-        $data = [
+        if ($this->context === 'Personel') {
+            return [
+                $this->no,
+                $senjata->satker->nama_satker ?? '-',
+                $senjata->jenis_senpi,
+                $senjata->laras,
+                $senjata->nup ?? '-',
+                $senjata->no_senpi ?? '-',
+                $senjata->kondisi,
+                $senjata->jumlah_amunisi_dibawa ?? 0,
+                $senjata->penanggung_jawab ?? '-',
+                $senjata->nrp ?? '-',
+                $senjata->masa_berlaku_simsa ? \Carbon\Carbon::parse($senjata->masa_berlaku_simsa)->format('d/m/Y') : '-',
+                $senjata->keterangan ?? '-'
+            ];
+        }
+
+        return [
             $this->no,
             $senjata->satker->nama_satker ?? '-',
             $senjata->jenis_senpi,
             $senjata->laras,
-            $senjata->nup,
-            $senjata->no_senpi,
+            $senjata->nup ?? '-',
+            $senjata->no_senpi ?? '-',
             $senjata->kondisi,
-            $senjata->keterangan,
         ];
-
-        if ($this->context === 'Personel') {
-            array_splice($data, 7, 0, [
-                $senjata->status_penyimpanan,
-                $senjata->penanggung_jawab,
-                $senjata->nrp,
-                $senjata->masa_berlaku_simsa,
-                $senjata->jenis_amunisi_dibawa,
-                $senjata->jumlah_amunisi_dibawa
-            ]);
-        }
-
-        return $data;
-
     }
 }

@@ -16,26 +16,31 @@ class SenjataTemplateExport implements WithHeadings, ShouldAutoSize
 
     public function headings(): array
     {
-        $headings = [
+        if ($this->context === 'Personel') {
+            return [
+                'NO',
+                'SATKER ID',
+                'JENIS SENPI',
+                'LARAS',
+                'NUP',
+                'NO SENPI',
+                'KONDISI',
+                'JUMLAH AMUNISI',
+                'NAMA',
+                'PANGKAT/NRP',
+                'MASA SIMSA',
+                'KETERANGAN'
+            ];
+        }
+
+        return [
+            'NO',
             'SATKER ID',
             'JENIS SENPI',
             'LARAS',
             'NUP',
             'NO SENPI',
             'KONDISI',
-            'KETERANGAN',
         ];
-
-        if ($this->context === 'Personel') {
-            array_splice($headings, 6, 0, [
-                'PENANGGUNG JAWAB',
-                'PANGKAT NRP',
-                'MASA BERLAKU SIMSA',
-                'JENIS AMUNISI DIBAWA',
-                'JUMLAH AMUNISI DIBAWA'
-            ]);
-        }
-
-        return $headings;
     }
 }

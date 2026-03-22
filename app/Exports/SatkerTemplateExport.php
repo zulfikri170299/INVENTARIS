@@ -10,14 +10,15 @@ class SatkerTemplateExport implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            ['Polsek Metro Penjaringan'],
-            ['Polsek Metro Gambir'],
+            ['1', 'Polsek Metro Penjaringan'],
+            ['2', 'Polsek Metro Gambir'],
         ];
     }
 
     public function headings(): array
     {
         return [
+            'NO',
             'NAMA SATKER',
         ];
     }

@@ -17,7 +17,7 @@ class AmunisiController extends Controller
 {
     use LogActivity;
 
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request)
     {
         $query = Amunisi::with('satker');
 
@@ -26,9 +26,10 @@ class AmunisiController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('jenis_amunisi', 'like', '%' . $request->search . '%')
-                  ->orWhere('keterangan', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('jenis_amunisi', 'like', '%' . $search . '%')
+                  ->orWhere('keterangan', 'like', '%' . $search . '%');
             });
         }
 
@@ -36,11 +37,18 @@ class AmunisiController extends Controller
             $query->where('satker_id', $request->satker_id);
         }
 
-        // Default to warehouse stock for the main amunisi view
-        $query->where('status_penyimpanan', 'Gudang');
+        // Default to warehouse stock if not specified
+        $status = $request->input('status_penyimpanan', 'Gudang');
+        $query->where('status_penyimpanan', $status);
 
+        return $query->latest();
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $amunisis = $query->latest()->paginate($perPage)->withQueryString();
+        $amunisis = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
         $jenis_amunisi_list = Amunisi::distinct()->pluck('jenis_amunisi');
 
@@ -117,17 +125,20 @@ class AmunisiController extends Controller
         foreach ($rows as $row) {
             if (!isset($row['jenis_amunisi']) || empty($row['jenis_amunisi'])) continue;
 
+            $row_satker_id = $satker_id ?? $row['satker_id'] ?? null;
+            if (!$row_satker_id) continue;
+
             // Check for existing by jenis_amunisi and status_penyimpanan in the same satker
-            $existing = Amunisi::where('satker_id', $satker_id)
+            $existing = Amunisi::where('satker_id', $row_satker_id)
                 ->where('jenis_amunisi', $row['jenis_amunisi'])
-                ->where('status_penyimpanan', $row['status_penyimpanan'])
+                ->where('status_penyimpanan', $row['status_penyimpanan'] ?? 'Gudang')
                 ->first();
 
             if ($existing) {
                 $conflicts[] = [
                     'existing' => $existing,
                     'new' => [
-                        'satker_id' => $satker_id,
+                        'satker_id' => $row_satker_id,
                         'jenis_amunisi' => $row['jenis_amunisi'],
                         'jumlah' => $row['jumlah'] ?? 0,
                         'status_penyimpanan' => $row['status_penyimpanan'] ?? 'Gudang',
@@ -136,7 +147,7 @@ class AmunisiController extends Controller
                 ];
             } else {
                 $validData[] = [
-                    'satker_id' => $satker_id,
+                    'satker_id' => $row_satker_id,
                     'jenis_amunisi' => $row['jenis_amunisi'],
                     'jumlah' => $row['jumlah'] ?? 0,
                     'status_penyimpanan' => $row['status_penyimpanan'] ?? 'Gudang',
@@ -185,21 +196,13 @@ class AmunisiController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Amunisi::with('satker');
+        $query = $this->getFilteredQuery($request);
         $satker = null;
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $satkerId = auth()->user()->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find(auth()->user()->satker_id);
         } elseif ($request->filled('satker_id')) {
-            $satkerId = $request->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
-        }
-
-        if ($request->filled('status_penyimpanan')) {
-            $query->where('status_penyimpanan', $request->status_penyimpanan);
+            $satker = Satker::find($request->satker_id);
         }
 
         $amunisis = $query->get();
@@ -210,24 +213,7 @@ class AmunisiController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $query = Amunisi::with('satker');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_amunisi', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('status_penyimpanan')) {
-            $query->where('status_penyimpanan', $request->status_penyimpanan);
-        }
-
+        $query = $this->getFilteredQuery($request);
         return Excel::download(new AmunisiExport($query), 'laporan-amunisi.xlsx');
     }
 

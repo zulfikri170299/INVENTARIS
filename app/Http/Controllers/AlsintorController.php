@@ -15,7 +15,7 @@ use App\Traits\LogActivity;
 class AlsintorController extends Controller
 {
     use LogActivity;
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request)
     {
         $query = Alsintor::with('satker');
 
@@ -24,8 +24,11 @@ class AlsintorController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('jenis_barang', 'like', '%' . $search . '%')
+                  ->orWhere('nup', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('satker_id')) {
@@ -36,8 +39,14 @@ class AlsintorController extends Controller
             $query->where('kondisi', $request->kondisi);
         }
 
+        return $query->latest();
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->getFilteredQuery($request);
         $perPage = $request->input('per_page', 10);
-        $alsintors = $query->latest()->paginate($perPage)->withQueryString();
+        $alsintors = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         return view('alsintor.index', compact('alsintors', 'satkers'));
@@ -112,25 +121,29 @@ class AlsintorController extends Controller
         foreach ($rows as $row) {
             if (!isset($row['jenis_barang']) || empty($row['jenis_barang'])) continue;
 
-            $existing = Alsintor::where('nup', $row['nup'])->first();
+            $row_satker_id = $satker_id ?? $row['satker_id'] ?? null;
+            if (!$row_satker_id) continue;
+
+            $nup = $row['nup'] ?? null;
+            $existing = !empty($nup) ? Alsintor::where('nup', $nup)->first() : null;
 
             if ($existing) {
                 $conflicts[] = [
                     'existing' => $existing,
                     'new' => [
-                        'satker_id' => $satker_id,
+                        'satker_id' => $row_satker_id,
                         'jenis_barang' => $row['jenis_barang'],
-                        'nup' => $row['nup'],
-                        'kondisi' => $row['kondisi'] ?? 'Baik',
+                        'nup' => $nup,
+                        'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
                         'keterangan' => $row['keterangan'] ?? null,
                     ]
                 ];
             } else {
                 $validData[] = [
-                    'satker_id' => $satker_id,
+                    'satker_id' => $row_satker_id,
                     'jenis_barang' => $row['jenis_barang'],
-                    'nup' => $row['nup'],
-                    'kondisi' => $row['kondisi'] ?? 'Baik',
+                    'nup' => $nup,
+                    'kondisi' => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
                     'keterangan' => $row['keterangan'] ?? null,
                 ];
             }
@@ -176,17 +189,13 @@ class AlsintorController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Alsintor::with('satker');
+        $query = $this->getFilteredQuery($request);
         $satker = null;
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $satkerId = auth()->user()->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find(auth()->user()->satker_id);
         } elseif ($request->filled('satker_id')) {
-            $satkerId = $request->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find($request->satker_id);
         }
 
         $alsintors = $query->get();
@@ -197,25 +206,7 @@ class AlsintorController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $query = \App\Models\Alsintor::with('satker');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_barang', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
-        }
-
+        $query = $this->getFilteredQuery($request);
         return Excel::download(new AlsintorExport($query), 'laporan-alsintor.xlsx');
     }
 

@@ -60,8 +60,7 @@
                     <th>Satker</th>
                 @endif
                 <th>Jenis Amunisi</th>
-                <th class="text-right">Jumlah</th>
-                <th class="text-center">Status Penyimpanan</th>
+                <th class="text-right">Jumlah di Gudang</th>
                 <th>Keterangan</th>
             </tr>
         </thead>
@@ -76,7 +75,6 @@
                     @endif
                     <td>{{ $item->jenis_amunisi }}</td>
                     <td class="text-right">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
-                    <td class="text-center">{{ $item->status_penyimpanan }}</td>
                     <td>{{ $item->keterangan ?? '-' }}</td>
                 </tr>
             @endforeach
@@ -86,7 +84,7 @@
                 <tr style="background-color: #f9fafb; font-weight: bold;">
                     <td colspan="{{ !$satker ? 3 : 2 }}" class="text-right">TOTAL</td>
                     <td class="text-right">{{ number_format($total, 0, ',', '.') }}</td>
-                    <td colspan="2"></td>
+                    <td></td>
                 </tr>
             </tfoot>
         @endif

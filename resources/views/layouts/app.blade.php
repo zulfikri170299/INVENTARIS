@@ -48,35 +48,8 @@
     <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: 'var(--primary-50)',
-                            100: 'var(--primary-100)',
-                            200: 'var(--primary-200)',
-                            300: 'var(--primary-300)',
-                            400: 'var(--primary-400)',
-                            500: 'var(--primary-500)',
-                            600: 'var(--primary-600)',
-                            700: 'var(--primary-700)',
-                            800: 'var(--primary-800)',
-                            900: 'var(--primary-900)',
-                        },
-                        secondary: 'var(--secondary)',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Styles & Scripts (Vite) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style id="theme-styles">
         :root {
             /* Default Blue */
@@ -424,9 +397,6 @@
 
     <!-- Hotwire Turbo -->
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.0/dist/turbo.es2017-umd.js"></script>
-
-    <!-- Alpine.js (for Dropdowns/Sidebar) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
 <body class="font-sans antialiased overflow-hidden" 

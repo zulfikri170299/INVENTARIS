@@ -120,10 +120,10 @@
     }">
 
         <!-- Action & Filter Bar -->
-        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3">
+        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 relative z-50">
             <!-- Left: Action Buttons -->
             <div class="flex items-center gap-2">
-                <button @click="showAddModal = true"
+                <button @click="showAddModal = true; addStatus = 'Gudang'"
                     class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all shadow-lg shadow-primary-500/20 group flex items-center">
                     <i class="ph ph-plus-circle text-lg mr-1.5 group-hover:rotate-90 transition-transform"></i>
                     Tambah
@@ -227,46 +227,30 @@
                     <thead>
                         <tr>
                             <th class="w-10 text-center">NO</th>
-                            @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin']))
+                            @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
                                 <th>Satker</th>
                             @endif
-                            <th>Nama Senjata</th>
+                            <th>Jenis Senjata</th>
+                            <th>Laras</th>
                             <th>NUP</th>
                             <th>No. Senpi</th>
                             <th>Kondisi</th>
-                            <th>Status/Amunisi</th>
-                            <th>Penanggung Jawab</th>
-                            <th class="text-center">Masa SIMSA</th>
                             <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-800">
                         @forelse($senjatas as $senjata)
-                            @php
-                                $daysToExpiry = $senjata->masa_berlaku_simsa ? \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($senjata->masa_berlaku_simsa), false) : null;
-                                $isExpired = $daysToExpiry !== null && $daysToExpiry <= 0;
-                                $isNearExpiry = $daysToExpiry !== null && $daysToExpiry > 0 && $daysToExpiry <= 30;
-
-                                $rowClass = '';
-                                if ($isExpired) {
-                                    $rowClass = 'bg-red-500/5';
-                                } elseif ($isNearExpiry) {
-                                    $rowClass = 'bg-yellow-500/5';
-                                }
-                            @endphp
-                            <tr class="transition-colors {{ $rowClass }}">
+                            <tr class="transition-colors">
                                 <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($senjatas->firstItem() - 1) }}
                                 </td>
                                 @if(!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
                                     <td>{{ $senjata->satker->nama_satker ?? '-' }}</td>
                                 @endif
-                                <td>
-                                    <div class="font-bold text-gray-100">{{ $senjata->jenis_senpi }}</div>
-                                    <div class="text-[9px] text-gray-500">{{ $senjata->laras }}</div>
-                                </td>
-                                <td class="font-mono">{{ $senjata->nup ?? '-' }}</td>
-                                <td class="font-mono">{{ $senjata->no_senpi ?? '-' }}</td>
+                                <td class="font-bold text-gray-100">{{ $senjata->jenis_senpi }}</td>
+                                <td>{{ $senjata->laras }}</td>
+                                <td class="font-mono text-xs">{{ $senjata->nup ?? '-' }}</td>
+                                <td class="font-mono text-xs">{{ $senjata->no_senpi ?? '-' }}</td>
                                 <td>
                                     @php
                                         $condColor = match ($senjata->kondisi) {
@@ -279,44 +263,8 @@
                                         {{ $senjata->kondisi }}
                                     </span>
                                 </td>
-                                <td>
-                                    @php
-                                        $statusColor = match ($senjata->status_penyimpanan) {
-                                            'Gudang' => 'text-blue-400',
-                                            'Personel' => 'text-purple-400',
-                                            'Dipinjamkan' => 'text-orange-400',
-                                            default => 'text-gray-400'
-                                        };
-                                    @endphp
-                                    <span class="font-bold text-[9px] uppercase {{ $statusColor }}">
-                                        {{ $senjata->status_penyimpanan ?? '-' }}
-                                    </span>
-                                    @if($senjata->status_penyimpanan === 'Personel' && $senjata->jenis_amunisi_dibawa)
-                                        <div class="text-[9px] text-orange-300/80 leading-none mt-0.5">
-                                            {{ $senjata->jenis_amunisi_dibawa }} ({{ $senjata->jumlah_amunisi_dibawa }})
-                                        </div>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="text-gray-100">{{ $senjata->penanggung_jawab }}</div>
-                                    <div class="text-[9px] text-gray-500">{{ $senjata->nrp }}</div>
-                                </td>
-                                <td class="text-center">
-                                    @if($senjata->masa_berlaku_simsa)
-                                        <div class="font-mono {{ $isExpired ? 'text-red-400 font-bold' : ($isNearExpiry ? 'text-yellow-400 font-bold' : 'text-gray-400') }}">
-                                            {{ \Carbon\Carbon::parse($senjata->masa_berlaku_simsa)->format('d/m/y') }}
-                                        </div>
-                                    @else
-                                        <span class="text-gray-700">-</span>
-                                    @endif
-                                </td>
                                 <td class="text-right">
                                     <div class="flex justify-end items-center space-x-1">
-                                        @if($senjata->status_penyimpanan === 'Personel' && $senjata->jumlah_amunisi_dibawa > 0)
-                                            <button @click='openReturn(@json($senjata))' class="p-1.5 text-orange-400 hover:bg-orange-500/10 rounded" title="Kembalikan Amunisi">
-                                                <i class="ph ph-arrow-u-down-left"></i>
-                                            </button>
-                                        @endif
                                         <button @click='formData = { ...@json($senjata) }; showTransferModal = true' class="p-1.5 text-gray-400 hover:text-primary-400 hover:bg-primary-500/10 rounded" title="Kirim">
                                             <i class="ph ph-paper-plane-tilt"></i>
                                         </button>
@@ -334,7 +282,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 10 : 9 }}"
+                                <td colspan="{{ (!auth()->user()->satker_id || in_array(auth()->user()->role, ['Super Admin'])) ? 9 : 8 }}"
                                     class="px-8 py-12 text-center text-gray-500 uppercase tracking-widest text-xs">Tidak ada data ditemukan</td>
                             </tr>
                         @endforelse

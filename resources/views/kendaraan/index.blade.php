@@ -111,7 +111,7 @@
     }">
 
         <!-- Action & Filter Bar -->
-        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in relative z-50">
             <!-- Left: Action Buttons -->
             <div class="flex items-center gap-2">
                 <button @click="showAddModal = true"

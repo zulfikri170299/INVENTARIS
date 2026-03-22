@@ -15,18 +15,28 @@ use App\Traits\LogActivity;
 class SenjataController extends Controller
 {
     use LogActivity;
-    public function index(Request $request)
+    private function getFilteredQuery(Request $request, $defaultStatus = null)
     {
-        $query = Senjata::with('satker')->where('status_penyimpanan', 'Gudang');
+        $query = Senjata::with('satker');
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
             $query->where('satker_id', auth()->user()->satker_id);
         }
 
+        // Handle Status Penyimpanan (Default context)
+        $status = $request->input('status_penyimpanan', $defaultStatus);
+        if ($status) {
+            $query->where('status_penyimpanan', $status);
+        }
+
         if ($request->filled('search')) {
-            $query->where('jenis_senpi', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%')
-                  ->orWhere('penanggung_jawab', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('jenis_senpi', 'like', '%' . $search . '%')
+                  ->orWhere('nup', 'like', '%' . $search . '%')
+                  ->orWhere('no_senpi', 'like', '%' . $search . '%')
+                  ->orWhere('penanggung_jawab', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('satker_id')) {
@@ -39,10 +49,6 @@ class SenjataController extends Controller
 
         if ($request->filled('laras')) {
             $query->where('laras', $request->laras);
-        }
-
-        if ($request->filled('status_penyimpanan')) {
-            $query->where('status_penyimpanan', $request->status_penyimpanan);
         }
 
         if ($request->filled('masa_simsa')) {
@@ -58,8 +64,14 @@ class SenjataController extends Controller
             }
         }
 
+        return $query->latest();
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->getFilteredQuery($request, 'Gudang');
         $perPage = $request->input('per_page', 10);
-        $senjatas = $query->latest()->paginate($perPage)->withQueryString();
+        $senjatas = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         // Ambil jenis amunisi beserta total stoknya sesuai satker yang sedang login
@@ -77,45 +89,9 @@ class SenjataController extends Controller
 
     public function pembawa(Request $request)
     {
-        $query = Senjata::with('satker')->where('status_penyimpanan', 'Personel');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_senpi', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%')
-                  ->orWhere('penanggung_jawab', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
-        }
-
-        if ($request->filled('laras')) {
-            $query->where('laras', $request->laras);
-        }
-
-        if ($request->filled('masa_simsa')) {
-            $today = now()->toDateString();
-            $thirtyDaysFromNow = now()->addDays(30)->toDateString();
-
-            if ($request->masa_simsa === 'Aktif') {
-                $query->where('masa_berlaku_simsa', '>=', $today);
-            } elseif ($request->masa_simsa === 'Akan Habis') {
-                $query->whereBetween('masa_berlaku_simsa', [$today, $thirtyDaysFromNow]);
-            } elseif ($request->masa_simsa === 'Habis') {
-                $query->where('masa_berlaku_simsa', '<', $today);
-            }
-        }
-
+        $query = $this->getFilteredQuery($request, 'Personel');
         $perPage = $request->input('per_page', 10);
-        $senjatas = $query->latest()->paginate($perPage)->withQueryString();
+        $senjatas = $query->paginate($perPage)->withQueryString();
         $satkers = Satker::all();
 
         // Ambil jenis amunisi beserta total stoknya sesuai satker yang sedang login
@@ -421,53 +397,65 @@ class SenjataController extends Controller
         ]);
 
         $satker_id = auth()->user()->satker_id ?? $request->satker_id;
-        $rows = Excel::toCollection(new SenjataImport($satker_id), $request->file('file'))->first();
+        
+        // Determine default status based on referrer
+        $referrer = $request->headers->get('referer');
+        $status_default = str_contains($referrer, 'pembawa') ? 'Personel' : 'Gudang';
+
+        $rows = Excel::toCollection(new SenjataImport($satker_id, $status_default), $request->file('file'))->first();
         
         $conflicts = [];
         $validData = [];
 
         foreach ($rows as $row) {
-            if (!isset($row['jenis_senpi']) || empty($row['jenis_senpi'])) continue;
+            $jenis_senpi = $row['jenis_senpi'] ?? $row['jenis_senjata'];
+            if (!$jenis_senpi || empty($jenis_senpi)) continue;
 
-            // Check for existing by no_senpi or nup
-            $existing = Senjata::where('no_senpi', $row['no_senpi'])
-                ->orWhere('nup', $row['nup'])
-                ->first();
+            $row_satker_id = $satker_id ?? $row['satker_id'] ?? null;
+            if (!$row_satker_id) continue;
+
+            $nup = $row['nup'] ?? null;
+            $no_senpi = $row['no_senpi'] ?? null;
+
+            // Check for existing by no_senpi or nup (only if they are not empty)
+            $existing = null;
+            if (!empty($no_senpi) || !empty($nup)) {
+                $existing = Senjata::where(function($q) use ($no_senpi, $nup) {
+                    if (!empty($no_senpi)) $q->where('no_senpi', $no_senpi);
+                    if (!empty($nup)) $q->orWhere('nup', $nup);
+                })->first();
+            }
 
             if ($existing) {
                 $conflicts[] = [
                     'existing' => $existing,
                     'new' => [
-                        'satker_id' => $satker_id,
-                        'jenis_senpi' => $row['jenis_senpi'],
-                        'laras' => $row['laras'],
-                        'nup' => $row['nup'] ?? null,
-                        'no_senpi' => $row['no_senpi'] ?? null,
-                        'kondisi' => $row['kondisi'] ?? 'Baik',
-                        'penanggung_jawab' => $request->context === 'Personel' ? ($row['penanggung_jawab'] ?? null) : null,
-                        'nrp' => $request->context === 'Personel' ? ($row['pangkat_nrp'] ?? $row['nrp'] ?? null) : null,
-                        'status_penyimpanan' => $request->context === 'Personel' ? ($row['status_penyimpanan'] ?? 'Personel') : 'Gudang',
-                        'masa_berlaku_simsa' => $request->context === 'Personel' ? ($row['masa_berlaku_simsa'] ?? null) : null,
-                        'jenis_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jenis_amunisi_dibawa'] ?? null) : null,
-                        'jumlah_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jumlah_amunisi_dibawa'] ?? 0) : 0,
-                        'keterangan' => $row['keterangan'] ?? null,
+                        'satker_id'             => $row_satker_id,
+                        'jenis_senpi'           => $jenis_senpi,
+                        'laras'                 => (isset($row['laras']) && in_array($row['laras'], ['Panjang', 'Pendek'])) ? $row['laras'] : 'Panjang',
+                        'nup'                   => $nup,
+                        'no_senpi'              => $no_senpi,
+                        'kondisi'               => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
+                        'status_penyimpanan'    => $row['penyimpanan'] ?? $row['status_penyimpanan'] ?? $status_default,
+                        'penanggung_jawab'      => $row['nama'] ?? $row['penanggung_jawab'] ?? null,
+                        'nrp'                   => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
+                        'masa_berlaku_simsa'    => isset($row['masa_simsa']) ? \Carbon\Carbon::parse($row['masa_simsa']) : ($row['masa_berlaku_simsa'] ?? null),
+                        'jumlah_amunisi_dibawa' => $row['jumlah_amunisi'] ?? $row['jumlah_amunisi_dibawa'] ?? 0,
                     ]
                 ];
             } else {
                 $validData[] = [
-                    'satker_id' => $satker_id,
-                    'jenis_senpi' => $row['jenis_senpi'],
-                    'laras' => $row['laras'],
-                    'nup' => $row['nup'] ?? null,
-                    'no_senpi' => $row['no_senpi'] ?? null,
-                    'kondisi' => $row['kondisi'] ?? 'Baik',
-                    'penanggung_jawab' => $request->context === 'Personel' ? ($row['penanggung_jawab'] ?? null) : null,
-                    'nrp' => $request->context === 'Personel' ? ($row['pangkat_nrp'] ?? $row['nrp'] ?? null) : null,
-                    'status_penyimpanan' => $request->context === 'Personel' ? ($row['status_penyimpanan'] ?? 'Personel') : 'Gudang',
-                    'masa_berlaku_simsa' => $request->context === 'Personel' ? ($row['masa_berlaku_simsa'] ?? null) : null,
-                    'jenis_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jenis_amunisi_dibawa'] ?? null) : null,
-                    'jumlah_amunisi_dibawa' => $request->context === 'Personel' ? ($row['jumlah_amunisi_dibawa'] ?? 0) : 0,
-                    'keterangan' => $row['keterangan'] ?? null,
+                    'satker_id'             => $row_satker_id,
+                    'jenis_senpi'           => $jenis_senpi,
+                    'laras'                 => (isset($row['laras']) && in_array($row['laras'], ['Panjang', 'Pendek'])) ? $row['laras'] : 'Panjang',
+                    'nup'                   => $nup,
+                    'no_senpi'              => $no_senpi,
+                    'kondisi'               => (isset($row['kondisi']) && in_array($row['kondisi'], ['Baik', 'Rusak Ringan', 'Rusak Berat'])) ? $row['kondisi'] : 'Baik',
+                    'status_penyimpanan'    => $row['penyimpanan'] ?? $row['status_penyimpanan'] ?? $status_default,
+                    'penanggung_jawab'      => $row['nama'] ?? $row['penanggung_jawab'] ?? null,
+                    'nrp'                   => $row['pangkat_nrp'] ?? $row['nrp'] ?? null,
+                    'masa_berlaku_simsa'    => isset($row['masa_simsa']) ? \Carbon\Carbon::parse($row['masa_simsa']) : ($row['masa_berlaku_simsa'] ?? null),
+                    'jumlah_amunisi_dibawa' => $row['jumlah_amunisi'] ?? $row['jumlah_amunisi_dibawa'] ?? 0,
                 ];
             }
         }
@@ -513,56 +501,31 @@ class SenjataController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $query = Senjata::with('satker');
+        $context = $request->query('context', 'Gudang');
+        $query = $this->getFilteredQuery($request, $context);
         $satker = null;
 
         if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $satkerId = auth()->user()->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find(auth()->user()->satker_id);
         } elseif ($request->filled('satker_id')) {
-            $satkerId = $request->satker_id;
-            $query->where('satker_id', $satkerId);
-            $satker = Satker::find($satkerId);
+            $satker = Satker::find($request->satker_id);
         }
 
         $senjatas = $query->get();
-        $pdf = Pdf::loadView('senjata.pdf', compact('senjatas', 'satker'));
+        $pdf = Pdf::loadView('senjata.pdf', compact('senjatas', 'satker', 'context'));
 
-        return $pdf->download('laporan-senjata.pdf');
+        if ($context === 'Personel') {
+            $pdf->setPaper('a4', 'landscape');
+        }
+
+        return $pdf->download('laporan-senjata' . ($context === 'Personel' ? '-pembawa' : '') . '.pdf');
     }
 
     public function exportExcel(Request $request)
     {
-        $query = Senjata::with('satker');
-
-        if (auth()->user()->satker_id && !in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2', 'Pimpinan'])) {
-            $query->where('satker_id', auth()->user()->satker_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('jenis_senpi', 'like', '%' . $request->search . '%')
-                  ->orWhere('nup', 'like', '%' . $request->search . '%')
-                  ->orWhere('penanggung_jawab', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('satker_id')) {
-            $query->where('satker_id', $request->satker_id);
-        }
-
-        if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
-        }
-
-        if ($request->filled('laras')) {
-            $query->where('laras', $request->laras);
-        }
-
-        if ($request->filled('status_penyimpanan')) {
-            $query->where('status_penyimpanan', $request->status_penyimpanan);
-        }
-
         $context = $request->query('context', 'Gudang');
+        $query = $this->getFilteredQuery($request, $context);
+        
         $filename = $context === 'Personel' ? 'laporan-pembawa-senjata.xlsx' : 'laporan-senjata-gudang.xlsx';
         return Excel::download(new SenjataExport($query, $context), $filename);
     }
@@ -626,39 +589,34 @@ class SenjataController extends Controller
             $query->where('kondisi', $kondisi);
         }
 
-        $senjatas = $query->get();
-
-        // Group by satker + jenis_senpi
-        $grouped = $senjatas->groupBy(function($item) {
-            return ($item->satker->nama_satker ?? 'Unknown') . '|' . $item->jenis_senpi;
-        });
-
-        $data = collect();
-        foreach ($grouped as $key => $items) {
-            list($satker, $jenisSenpi) = explode('|', $key);
-
-            $statusCounts = $items->countBy('kondisi');
-
-            $data->push([
-                'satker' => $satker,
-                'jenis_senpi' => $jenisSenpi,
-                'baik' => $statusCounts->get('Baik', 0),
-                'rusak_ringan' => $statusCounts->get('Rusak Ringan', 0),
-                'rusak_berat' => $statusCounts->get('Rusak Berat', 0),
-                'jumlah' => $items->count(),
-            ]);
-        }
-
-        $data = $data->sortBy('satker')->values();
-
         $stats = [
-            'total' => $senjatas->count(),
-            'total_baik' => $senjatas->where('kondisi', 'Baik')->count(),
-            'total_rusak_ringan' => $senjatas->where('kondisi', 'Rusak Ringan')->count(),
-            'total_rusak_berat' => $senjatas->where('kondisi', 'Rusak Berat')->count(),
-            'total_panjang' => $senjatas->where('laras', 'Panjang')->count(),
-            'total_pendek' => $senjatas->where('laras', 'Pendek')->count(),
+            'total' => (clone $query)->count(),
+            'total_baik' => (clone $query)->where('kondisi', 'Baik')->count(),
+            'total_rusak_ringan' => (clone $query)->where('kondisi', 'Rusak Ringan')->count(),
+            'total_rusak_berat' => (clone $query)->where('kondisi', 'Rusak Berat')->count(),
+            'total_panjang' => (clone $query)->where('laras', 'Panjang')->count(),
+            'total_pendek' => (clone $query)->where('laras', 'Pendek')->count(),
         ];
+
+        $data = $query->select('satker_id', 'jenis_senpi')
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Baik' THEN 1 ELSE 0 END) as baik")
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Ringan' THEN 1 ELSE 0 END) as rusak_ringan")
+            ->selectRaw("SUM(CASE WHEN kondisi = 'Rusak Berat' THEN 1 ELSE 0 END) as rusak_berat")
+            ->selectRaw("COUNT(*) as jumlah")
+            ->groupBy('satker_id', 'jenis_senpi')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'satker' => $item->satker ? $item->satker->nama_satker : 'Unknown',
+                    'jenis_senpi' => $item->jenis_senpi,
+                    'baik' => (int)$item->baik,
+                    'rusak_ringan' => (int)$item->rusak_ringan,
+                    'rusak_berat' => (int)$item->rusak_berat,
+                    'jumlah' => (int)$item->jumlah,
+                ];
+            })
+            ->sortBy('satker')
+            ->values();
 
         $satkers = Satker::all();
 
