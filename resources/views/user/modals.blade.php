@@ -67,7 +67,7 @@
                     <button type="button" @click="showAddModal = false"
                         class="px-6 py-2.5 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-all">Batal</button>
                     <button type="submit"
-                        class="px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 shadow-lg shadow-primary-500/30 transition-all">Simpan
+                        class="px-6 py-2.5 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 border border-primary-500/30 rounded-xl font-bold transition-all">Simpan
                         User</button>
                 </div>
             </form>

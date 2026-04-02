@@ -101,6 +101,21 @@ class AmunisiController extends Controller
         return redirect()->route('amunisi.index')->with('success', 'Data amunisi berhasil diperbarui.');
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $count = count($ids);
+        Amunisi::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal Amunisi', "Menghapus $count data amunisi secara masal.", 'Amunisi');
+
+        return response()->json(['status' => 'success', 'message' => "$count data amunisi berhasil dihapus."]);
+    }
+
     public function destroy($id)
     {
         $amunisi = Amunisi::findOrFail($id);

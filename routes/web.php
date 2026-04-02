@@ -10,8 +10,7 @@ use App\Http\Controllers\SatkerController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AmunisiController;
 use App\Http\Controllers\AmunisiHistoryController;
-use App\Http\Controllers\PengajuanBerkasController;
-use App\Http\Controllers\PersyaratanBerkasController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -91,34 +90,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/alsus/confirm-import', [AlsusController::class, 'confirmImport'])->name('alsus.confirm-import');
     Route::post('/alsintor/confirm-import', [AlsintorController::class, 'confirmImport'])->name('alsintor.confirm-import');
 
+    // Bulk Delete Routes
+    Route::post('senjata/bulk-delete', [SenjataController::class, 'bulkDelete'])->name('senjata.bulk-delete');
+    Route::post('kendaraan/bulk-delete', [KendaraanController::class, 'bulkDelete'])->name('kendaraan.bulk-delete');
+    Route::post('alsus/bulk-delete', [AlsusController::class, 'bulkDelete'])->name('alsus.bulk-delete');
+    Route::post('alsintor/bulk-delete', [AlsintorController::class, 'bulkDelete'])->name('alsintor.bulk-delete');
+    Route::post('amunisi/bulk-delete', [AmunisiController::class, 'bulkDelete'])->name('amunisi.bulk-delete');
+    Route::post('users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+    Route::post('satkers/bulk-delete', [SatkerController::class, 'bulkDelete'])->name('satkers.bulk-delete');
+
     // Chat Routes
     Route::get('/chat/users', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.users');
     Route::get('/chat/messages/{receiverId}', [\App\Http\Controllers\ChatController::class, 'fetchMessages'])->name('chat.messages');
     Route::post('/chat/send', [\App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
     Route::post('/chat/status', [\App\Http\Controllers\ChatController::class, 'updateStatus'])->name('chat.status');
 
-    // Pengajuan Berkas
-    Route::get('pengajuan-berkas', [PengajuanBerkasController::class, 'index'])->name('pengajuan-berkas.index');
-    Route::get('pengajuan-berkas/create', [PengajuanBerkasController::class, 'create'])->name('pengajuan-berkas.create');
-    Route::post('pengajuan-berkas', [PengajuanBerkasController::class, 'store'])->name('pengajuan-berkas.store');
-    Route::get('pengajuan-berkas/{id}', [PengajuanBerkasController::class, 'show'])->name('pengajuan-berkas.show');
-    Route::post('pengajuan-berkas/{id}/terima', [PengajuanBerkasController::class, 'terima'])->name('pengajuan-berkas.terima');
-    Route::post('pengajuan-berkas/{id}/proses', [PengajuanBerkasController::class, 'proses'])->name('pengajuan-berkas.proses');
-    Route::post('pengajuan-berkas/{id}/kembalikan', [PengajuanBerkasController::class, 'kembalikan'])->name('pengajuan-berkas.kembalikan');
-    Route::post('pengajuan-berkas/{id}/perbaiki', [PengajuanBerkasController::class, 'perbaiki'])->name('pengajuan-berkas.perbaiki');
-    Route::post('pengajuan-berkas/{id}/naik-kapolda', [PengajuanBerkasController::class, 'naikKeKapolda'])->name('pengajuan-berkas.naik-kapolda');
-    Route::post('pengajuan-berkas/{id}/tandatangan', [PengajuanBerkasController::class, 'tandatangan'])->name('pengajuan-berkas.tandatangan');
-    Route::post('pengajuan-berkas/{id}/kirim-final', [PengajuanBerkasController::class, 'kirimBerkasFinal'])->name('pengajuan-berkas.kirim-final');
-    Route::get('pengajuan-berkas/{id}/download-final', [PengajuanBerkasController::class, 'downloadBerkasFinal'])->name('pengajuan-berkas.download-final');
-    Route::get('pengajuan-berkas/{id}/preview-final', [PengajuanBerkasController::class, 'previewBerkasFinal'])->name('pengajuan-berkas.preview-final');
-    Route::get('pengajuan-berkas/dokumen/{id}/download', [PengajuanBerkasController::class, 'downloadDokumen'])->name('pengajuan-berkas.download-dokumen');
-    Route::get('pengajuan-berkas/dokumen/{id}/preview', [PengajuanBerkasController::class, 'previewDokumen'])->name('pengajuan-berkas.preview-dokumen');
-    Route::get('pengajuan-berkas/dokumen/{id}/annotate', [PengajuanBerkasController::class, 'annotateDokumen'])->name('pengajuan-berkas.annotate-dokumen');
-    Route::post('pengajuan-berkas/dokumen/{id}/annotate', [PengajuanBerkasController::class, 'saveAnnotation'])->name('pengajuan-berkas.save-annotation');
 
-    // Persyaratan Berkas (Super Admin)
-    Route::get('persyaratan-berkas/{id}/download-contoh', [PersyaratanBerkasController::class, 'downloadContoh'])->name('persyaratan-berkas.download-contoh');
-    Route::resource('persyaratan-berkas', PersyaratanBerkasController::class)->except(['show']);
 
     // Notifikasi Lonceng
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');

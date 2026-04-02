@@ -7,205 +7,165 @@
         @endif
     </x-slot>
 
-    <div class="space-y-4 lg:space-y-6 animate-fade-in">
-        <!-- Dashboard Welcome -->
-        <div
-            class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 lg:p-8 rounded-xl lg:rounded-2xl relative overflow-hidden shadow-lg mb-4 lg:mb-8">
-            <div class="absolute top-0 right-0 -m-8 w-48 lg:w-64 h-48 lg:h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div class="relative z-10">
-                <h3 class="text-xl lg:text-3xl font-bold text-white mb-2">Selamat Datang,
-                    {{ Auth::user()->name }}! 👋
-                </h3>
-                <p class="text-white/90 max-w-2xl text-xs lg:text-base">
-                    @if(auth()->user()->satker)
-                        {{ auth()->user()->satker->nama_satker }} —
-                    @endif
-                    Kelola aset dan inventaris alat dengan mudah dan cepat melalui dashboard terpadu ini.
-                </p>
+    <div class="mb-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+    </div>
+
+    <div class="space-y-4 animate-fade-in">
+        <!-- Main Stats Row - Vibrant Gradients -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Satker Card -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-500 p-3 shadow-lg shadow-indigo-500/20 group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                        <i class="ph ph-buildings text-xl"></i>
+                    </div>
+                    <a href="{{ route('satkers.index') }}" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md border border-white/20 transition-all">
+                        Kelola
+                    </a>
+                </div>
+                <div class="flex items-end space-x-3 text-white">
+                    <span class="text-3xl font-black leading-none">{{ $satkers_count ?? 24 }}</span>
+                    <span class="text-[11px] font-bold opacity-80 pb-0.5">Total Satker</span>
+                </div>
+            </div>
+
+            <!-- Users Card -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-500 p-4 shadow-lg shadow-emerald-500/20 group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                        <i class="ph ph-users text-xl"></i>
+                    </div>
+                    <a href="{{ route('users.index') }}" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md border border-white/20 transition-all">
+                        Kelola
+                    </a>
+                </div>
+                <div class="flex items-end space-x-3 text-white">
+                    <span class="text-3xl font-black leading-none">{{ $users_count ?? 230 }}</span>
+                    <span class="text-[11px] font-bold opacity-80 pb-0.5">Total Users</span>
+                </div>
+            </div>
+
+            <!-- Kendaraan Card -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-600 to-orange-500 p-4 shadow-lg shadow-orange-500/20 group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                        <i class="ph ph-truck text-xl"></i>
+                    </div>
+                    <a href="{{ route('kendaraan.index') }}" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md border border-white/20 transition-all">
+                        Kelola
+                    </a>
+                </div>
+                <div class="flex items-end space-x-3 text-white">
+                    <span class="text-3xl font-black leading-none">{{ $totalKendaraan }}</span>
+                    <span class="text-[11px] font-bold opacity-80 pb-0.5">Total Kendaraan</span>
+                </div>
+            </div>
+
+            <!-- Transaksi Card -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-600 to-pink-500 p-4 shadow-lg shadow-pink-500/20 group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                        <i class="ph ph-chart-line-up text-xl"></i>
+                    </div>
+                    <a href="{{ route('activity-logs.index') }}" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md border border-white/20 transition-all">
+                        Riwayat
+                    </a>
+                </div>
+                <div class="flex items-end space-x-3 text-white">
+                    <span class="text-3xl font-black leading-none">{{ $activity_logs_count ?? '1.149' }}</span>
+                    <span class="text-[11px] font-bold opacity-80 pb-0.5">Total Log</span>
+                </div>
             </div>
         </div>
 
-        <!-- Stats Grid - Main Totals -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-6">
-            <!-- Card 1 - Senjata -->
-            <a href="{{ route('senjata.index') }}"
-                class="bg-gradient-to-br from-blue-400 to-blue-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg group">
-                <div class="flex items-center justify-between mb-2 lg:mb-3">
-                    <div
-                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm group-hover:bg-white/30 transition-all">
-                        <i class="ph ph-shield-check text-lg lg:text-xl"></i>
-                    </div>
-                    <div
-                        class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full group-hover:bg-white/30 transition-all">
-                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
-                    </div>
-                </div>
-                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Senjata</h4>
-                <div class="flex items-baseline justify-between mt-0.5 lg:mt-1">
-                    <p class="text-xl lg:text-3xl font-bold text-white leading-none">{{ $totalSenjata }}</p>
-                    <div class="text-right flex flex-col items-end leading-tight">
-                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">P:
-                            <span class="text-white text-[10px] lg:text-xs">{{ $senjataPanjang }}</span></span>
-                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">D:
-                            <span class="text-white text-[10px] lg:text-xs">{{ $senjataPendek }}</span></span>
+        <!-- Horizontal Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- horizontal card 1 (Senjata) -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-700 to-indigo-500 p-3 shadow-lg shadow-indigo-500/10 group">
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                            <i class="ph ph-shield-check text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-[9px] font-black text-white/70 uppercase tracking-widest leading-none mb-1">TOTAL DATA SENJATA</h4>
+                            <div class="flex items-end space-x-2">
+                                <span class="text-2xl font-black text-white leading-none">{{ $totalSenjata }}</span>
+                                <span class="text-[10px] font-bold text-white/80 pb-0.5">Unit</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 2 - Amunisi -->
-            <a href="{{ route('amunisi.index') }}"
-                class="bg-gradient-to-br from-red-400 to-red-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
-                <div class="flex items-center justify-between mb-2 lg:mb-3">
-                    <div
-                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-target text-lg lg:text-xl"></i>
-                    </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
-                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
-                    </div>
-                </div>
-                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Amunisi</h4>
-                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">
-                    {{ number_format($totalAmunisi, 0, ',', '.') }}
-                </p>
-            </a>
-
-            <!-- Card 3 - Kendaraan -->
-            <a href="{{ route('kendaraan.index') }}"
-                class="bg-gradient-to-br from-purple-400 to-purple-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg group">
-                <div class="flex items-center justify-between mb-2 lg:mb-3">
-                    <div
-                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm group-hover:bg-white/30 transition-all">
-                        <i class="ph ph-truck text-lg lg:text-xl"></i>
-                    </div>
-                    <div
-                        class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full group-hover:bg-white/30 transition-all">
-                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
+            <!-- horizontal card 2 (Amunisi) -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-600 to-rose-500 p-4 shadow-lg shadow-red-500/10 group">
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30">
+                            <i class="ph ph-target text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-[9px] font-black text-white/70 uppercase tracking-widest leading-none mb-1">TOTAL STOK AMUNISI</h4>
+                            <div class="flex items-end space-x-2">
+                                <span class="text-2xl font-black text-white leading-none">{{ number_format($totalAmunisi, 0, ',', '.') }}</span>
+                                <span class="text-[10px] font-bold text-white/80 pb-0.5">Butir</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Total Kendaraan</h4>
-                <div class="flex items-baseline justify-between mt-0.5 lg:mt-1">
-                    <p class="text-xl lg:text-3xl font-bold text-white leading-none">{{ $totalKendaraan }}</p>
-                    <div class="grid grid-cols-2 gap-x-1.5 lg:gap-x-2 text-right leading-tight">
-                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">R2:
-                            <span class="text-white text-[10px] lg:text-xs">{{ $kendaraanR2 }}</span></span>
-                        <span class="text-[8px] lg:text-[9px] text-white/70 font-semibold uppercase tracking-wider">R4:
-                            <span class="text-white text-[10px] lg:text-xs">{{ $kendaraanR4 }}</span></span>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Card 4 - Alsus -->
-            <a href="{{ route('alsus.index') }}"
-                class="bg-gradient-to-br from-orange-400 to-orange-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
-                <div class="flex items-center justify-between mb-2 lg:mb-3">
-                    <div
-                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-wrench text-lg lg:text-xl"></i>
-                    </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
-                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
-                    </div>
-                </div>
-                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Alat Khusus</h4>
-                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">{{ $totalAlsus }}</p>
-            </a>
-
-            <!-- Card 5 - Alsintor -->
-            <a href="{{ route('alsintor.index') }}"
-                class="bg-gradient-to-br from-green-400 to-green-600 px-4 lg:px-6 py-3 lg:py-4 rounded-xl hover:scale-[1.02] transition-all transform duration-300 shadow-md hover:shadow-lg">
-                <div class="flex items-center justify-between mb-2 lg:mb-3">
-                    <div
-                        class="w-8 lg:w-10 h-8 lg:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white backdrop-blur-sm">
-                        <i class="ph ph-farm text-lg lg:text-xl"></i>
-                    </div>
-                    <div class="bg-white/20 backdrop-blur-sm px-1.5 lg:px-2 py-0.5 rounded-full">
-                        <i class="ph ph-arrow-right text-white text-[10px] lg:text-xs"></i>
-                    </div>
-                </div>
-                <h4 class="text-white/80 font-medium text-[10px] lg:text-xs">Alsintor</h4>
-                <p class="text-xl lg:text-3xl font-bold text-white mt-0.5 lg:mt-1 leading-none">{{ $totalAlsintor }}</p>
-            </a>
+            </div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 mt-4 lg:mt-8">
-
-            <!-- SIMSA Chart -->
-            <div
-                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
-                <div
-                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all duration-500">
-                </div>
-                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
-                    <h4
-                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-orange-100">
-                        <div
-                            class="w-6 lg:w-8 h-6 lg:h-8 bg-orange-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-orange-500/20">
-                            <i class="ph ph-warning-circle text-orange-400 text-xs lg:text-xl"></i>
+        <!-- SIMSA Row (Warning/Debt Style) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-[1.5rem] border border-orange-100 shadow-xl shadow-orange-500/5 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 border border-orange-200">
+                        <i class="ph ph-warning-circle text-3xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">SIMSA (HABIS MASA)</h4>
+                        <div class="flex items-end space-x-2">
+                            <span class="text-3xl font-black text-slate-800 leading-none">{{ $totalSimsa }}</span>
+                            <span class="text-sm font-bold text-slate-500 pb-0.5">Personel</span>
                         </div>
-                        SIMSA (Habis Masa)
-                    </h4>
-                    <a href="{{ route('senjata.index') }}"
-                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
-                        title="Lihat Data Sumber">
-                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
-                    </a>
+                    </div>
                 </div>
-                <div class="relative h-24 lg:h-48 z-10">
+            </div>
+
+            <div class="bg-white p-6 rounded-[1.5rem] border border-red-100 shadow-xl shadow-red-500/5 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 border border-red-200">
+                        <i class="ph ph-scales text-3xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">DATA RUSAK BERAT</h4>
+                        <div class="flex items-end space-x-2">
+                            <span class="text-3xl font-black text-slate-800 leading-none">{{ $total_rusak ?? '0' }}</span>
+                            <span class="text-sm font-bold text-slate-500 pb-0.5">Unit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Chart Row -->
+        <div class="grid grid-cols-1 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-xl shadow-slate-200/50">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 border border-indigo-100">
+                            <i class="ph ph-chart-pie-slice text-xl"></i>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-800 tracking-tight">Statistik Distribusi Item</h4>
+                    </div>
+                </div>
+                <div class="relative h-64">
                     <canvas id="simsaChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Penghapusan Chart -->
-            <div
-                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
-                <div
-                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-red-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-all duration-500">
-                </div>
-                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
-                    <h4
-                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-red-100">
-                        <div
-                            class="w-6 lg:w-8 h-6 lg:h-8 bg-red-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-red-500/20">
-                            <i class="ph ph-trash text-red-400 text-xs lg:text-xl"></i>
-                        </div>
-                        Penghapusan
-                    </h4>
-                    <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penghapusan']) }}"
-                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
-                        title="Lihat Data Sumber">
-                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
-                    </a>
-                </div>
-                <div class="relative h-24 lg:h-48 z-10">
-                    <canvas id="penghapusanChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Penetapan Chart -->
-            <div
-                class="glass-card px-4 lg:px-8 py-4 lg:py-6 rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/5 relative overflow-hidden group">
-                <div
-                    class="absolute top-0 right-0 -m-4 w-16 lg:w-24 h-16 lg:h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all duration-500">
-                </div>
-                <div class="flex items-center justify-between mb-3 lg:mb-4 relative z-10">
-                    <h4
-                        class="font-bold text-[10px] lg:text-base text-gray-100 flex items-center tracking-tight text-blue-100">
-                        <div
-                            class="w-6 lg:w-8 h-6 lg:h-8 bg-blue-500/10 rounded-lg flex items-center justify-center mr-2 lg:mr-3 border border-blue-500/20">
-                            <i class="ph ph-certificate text-blue-400 text-xs lg:text-xl"></i>
-                        </div>
-                        Penetapan Status
-                    </h4>
-                    <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penetapan_status']) }}"
-                        class="w-7 lg:w-8 h-7 lg:h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
-                        title="Lihat Data Sumber">
-                        <i class="ph ph-arrow-square-out text-base lg:text-lg"></i>
-                    </a>
-                </div>
-                <div class="relative h-24 lg:h-48 z-10">
-                    <canvas id="penetapanChart"></canvas>
                 </div>
             </div>
         </div>
@@ -223,7 +183,7 @@
                             var centerConfig = chart.config.options.elements.center;
                             var fontStyle = centerConfig.fontStyle || 'Outfit';
                             var txt = centerConfig.text;
-                            var color = centerConfig.color || '#f1f5f9';
+                            var color = '#1e293b';
                             var sidePadding = centerConfig.sidePadding || 20;
                             var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2);
                             ctx.font = "bold 30px " + fontStyle;
@@ -254,7 +214,7 @@
                             backgroundColor: ['#ef4444', '#facc15', '#22c55e'],
                             hoverOffset: 12,
                             borderWidth: 2,
-                            borderColor: '#1e293b'
+                            borderColor: '#ffffff'
                         }]
                     },
                     options: {
@@ -266,8 +226,8 @@
                                 labels: {
                                     usePointStyle: true,
                                     padding: 15,
-                                    color: '#f8fafc',
-                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
+                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim(),
+                                    font: { family: 'Outfit', size: 11, weight: '600' }
                                 }
                             },
                             tooltip: {
@@ -287,117 +247,7 @@
                         elements: {
                             center: {
                                 text: '{{ $totalSimsa }}',
-                                color: '#f1f5f9'
-                            }
-                        }
-                    },
-                    plugins: [centerTextPlugin]
-                });
-
-                // Penghapusan Chart
-                new Chart(document.getElementById('penghapusanChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Diajukan', 'Proses', 'Revisi', 'Selesai'],
-                        datasets: [{
-                            data: [
-                                {{ $penghapusanCounts['diajukan'] + $penghapusanCounts['diterima'] }},
-                                {{ $penghapusanCounts['diproses'] + $penghapusanCounts['naik_ke_kapolda'] + $penghapusanCounts['ditandatangani'] }},
-                                {{ $penghapusanCounts['dikembalikan'] }},
-                                {{ $penghapusanCounts['selesai'] }}
-                            ],
-                            backgroundColor: ['#3b82f6', '#a855f7', '#ef4444', '#22c55e'],
-                            hoverOffset: 12,
-                            borderWidth: 2,
-                            borderColor: '#1e293b'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 15,
-                                    color: '#f8fafc',
-                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleFont: { family: 'Outfit', size: 11 },
-                                bodyFont: { family: 'Outfit', size: 10 },
-                                padding: 10,
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function (context) {
-                                        return ' ' + context.label + ': ' + context.raw + ' Berkas';
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '75%',
-                        elements: {
-                            center: {
-                                text: '{{ $totalPenghapusan }}',
-                                color: '#f1f5f9'
-                            }
-                        }
-                    },
-                    plugins: [centerTextPlugin]
-                });
-
-                // Penetapan Status Chart
-                new Chart(document.getElementById('penetapanChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Diajukan', 'Proses', 'Revisi', 'Selesai'],
-                        datasets: [{
-                            data: [
-                                {{ $penetapanCounts['diajukan'] + $penetapanCounts['diterima'] }},
-                                {{ $penetapanCounts['diproses'] + $penetapanCounts['naik_ke_kapolda'] + $penetapanCounts['ditandatangani'] }},
-                                {{ $penetapanCounts['dikembalikan'] }},
-                                {{ $penetapanCounts['selesai'] }}
-                            ],
-                            backgroundColor: ['#3b82f6', '#a855f7', '#ef4444', '#22c55e'],
-                            hoverOffset: 12,
-                            borderWidth: 2,
-                            borderColor: '#1e293b'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 15,
-                                    color: '#f8fafc',
-                                    font: { family: 'Outfit', size: 10, weight: 'bold' }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleFont: { family: 'Outfit', size: 11 },
-                                bodyFont: { family: 'Outfit', size: 10 },
-                                padding: 10,
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function (context) {
-                                        return ' ' + context.label + ': ' + context.raw + ' Berkas';
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '75%',
-                        elements: {
-                            center: {
-                                text: '{{ $totalPenetapan }}',
-                                color: '#f1f5f9'
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim()
                             }
                         }
                     },

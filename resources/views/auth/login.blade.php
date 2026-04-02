@@ -9,7 +9,7 @@
                     Invenlog <br> Polda NTB
                 </h1>
             </div>
-            <p class="text-gray-400 text-sm mt-2">Sistem Inventaris Logistik</p>
+            <p class="text-gray-500 text-sm mt-2 font-semibold">Sistem Inventaris Logistik</p>
         </div>
 
         <!-- Session Status -->
@@ -22,10 +22,10 @@
             <div class="relative group">
                 <input id="email" type="email" name="email" :value="old('email')" required autofocus
                     autocomplete="username"
-                    class="peer w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
+                    class="peer w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
                     placeholder="Email Address" />
                 <label for="email"
-                    class="absolute left-4 -top-2.5 bg-[#131d33] px-1 text-sm text-gray-400 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-gray-200 peer-focus:text-sm">
+                    class="absolute left-4 -top-2.5 bg-white px-1 text-xs font-bold text-gray-500 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-primary-600 peer-focus:text-xs">
                     Email Address
                 </label>
                 <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400" />
@@ -35,14 +35,14 @@
             <div class="relative group" x-data="{ show: false }">
                 <input id="password" :type="show ? 'text' : 'password'" name="password" required
                     autocomplete="current-password"
-                    class="peer w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
+                    class="peer w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-transparent"
                     placeholder="Password" />
                 <label for="password"
-                    class="absolute left-4 -top-2.5 bg-[#131d33] px-1 text-sm text-gray-400 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-gray-200 peer-focus:text-sm">
+                    class="absolute left-4 -top-2.5 bg-white px-1 text-xs font-bold text-gray-500 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 peer-focus:-top-2.5 peer-focus:text-primary-600 peer-focus:text-xs">
                     Password
                 </label>
                 <button type="button" @click="show = !show"
-                    class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-200 transition-colors focus:outline-none z-10">
+                    class="absolute right-4 top-3.5 text-gray-400 hover:text-primary-600 transition-colors focus:outline-none z-10">
                     <i class="ph ph-eye text-xl" x-show="!show"></i>
                     <i class="ph ph-eye-slash text-xl" x-show="show" x-cloak></i>
                 </button>
@@ -53,13 +53,13 @@
             <div class="flex items-center justify-between">
                 <label for="remember_me" class="inline-flex items-center cursor-pointer">
                     <input id="remember_me" type="checkbox"
-                        class="rounded border-gray-700 bg-gray-800 text-primary-500 focus:ring-offset-gray-900 focus:ring-primary-500"
+                        class="rounded border-gray-300 bg-white text-primary-500 focus:ring-primary-500"
                         name="remember">
-                    <span class="ms-2 text-sm text-gray-400">{{ __('Remember me') }}</span>
+                    <span class="ms-2 text-sm text-gray-500 font-medium">{{ __('Remember me') }}</span>
                 </label>
 
                 @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-400 hover:text-primary-400 transition-colors"
+                    <a class="underline text-sm text-gray-500 hover:text-primary-600 transition-colors font-medium"
                         href="{{ route('password.request') }}">
                         {{ __('Lupa password?') }}
                     </a>

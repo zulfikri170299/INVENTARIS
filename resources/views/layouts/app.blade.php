@@ -1,32 +1,18 @@
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="themeManager()" x-init="init()">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <script>
-    // Immediate theme detection to prevent flash
+    // Immediate theme locking for Hybrid Light (Dark Sidebar, Light Content)
     (function() {
-        const isDark = localStorage.getItem('isDark') !== 'false';
-        const theme = localStorage.getItem('theme') || 'Azure';
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.backgroundColor = '#f8fafc'; // SLATE 50 / WHITE
         
-        if (isDark) {
-            document.documentElement.classList.add('dark');
-            document.documentElement.style.backgroundColor = '#0b1120';
-        } else {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.style.backgroundColor = '#f1f5f9';
-        }
-        
-        const themes = {
-            'Azure': {'50': '#f0f9ff', '100': '#e0f2fe', '200': '#bae6fd', '300': '#7dd3fc', '400': '#38bdf8', '500': '#0ea5e9', '600': '#0284c7', '700': '#0369a1', '800': '#075985', '900': '#0c4a6e'},
-            'Emerald': {'50': '#ecfdf5', '100': '#d1fae5', '200': '#a7f3d0', '300': '#6ee7b7', '400': '#34d399', '500': '#10b981', '600': '#059669', '700': '#047857', '800': '#065f46', '900': '#064e3b'},
-            'Indigo': {'50': '#eef2ff', '100': '#e0e7ff', '200': '#c7d2fe', '300': '#a5b4fc', '400': '#818cf8', '500': '#6366f1', '600': '#4f46e5', '700': '#4338ca', '800': '#3730a3', '900': '#312e81'},
-            'Rose': {'50': '#fff1f2', '100': '#ffe4e6', '200': '#fecdd3', '300': '#fda4af', '400': '#fb7185', '500': '#f43f5e', '600': '#e11d48', '700': '#be123c', '800': '#9f1239', '900': '#881337'},
-            'Amber': {'50': '#fffbeb', '100': '#fef3c7', '200': '#fde68a', '300': '#fcd34d', '400': '#fbbf24', '500': '#f59e0b', '600': '#d97706', '700': '#b45309', '800': '#92400e', '900': '#78350f'},
-            'Slate': {'50': '#f8fafc', '100': '#f1f5f9', '200': '#e2e8f0', '300': '#cbd5e1', '400': '#94a3b8', '500': '#64748b', '600': '#475569', '700': '#334155', '800': '#1e293b', '900': '#0f172a'}
+        // Deep Maroon Palette (#991b1b / #450a0a)
+        const colors = {
+            '50': '#fef2f2', '100': '#fee2e2', '200': '#fecaca', '300': '#fca5a5', '400': '#f87171', 
+            '500': '#b91c1c', '600': '#991b1b', '700': '#7f1d1d', '800': '#450a0a', '900': '#2d0606'
         };
-        const colors = themes[theme];
-        if (colors) {
-            Object.keys(colors).forEach(key => {
-                document.documentElement.style.setProperty(`--primary-${key}`, colors[key]);
-            });
-        }
+        Object.keys(colors).forEach(key => {
+            document.documentElement.style.setProperty(`--primary-${key}`, colors[key]);
+        });
     })();
 </script>
 
@@ -48,145 +34,258 @@
     <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+
     <!-- Styles & Scripts (Vite) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style id="theme-styles">
         :root {
-            /* Default Blue */
-            --primary-50: #f0f9ff;
-            --primary-100: #e0f2fe;
-            --primary-200: #bae6fd;
-            --primary-300: #7dd3fc;
-            --primary-400: #38bdf8;
-            --primary-500: #0ea5e9;
-            --primary-600: #0284c7;
-            --primary-700: #0369a1;
-            --primary-800: #075985;
-            --primary-900: #0c4a6e;
-            --secondary: #1e293b;
+            /* SPBP Amber Gold Palette */
+            --primary-50: #fef2f2;
+            --primary-100: #fee2e2;
+            --primary-200: #fecaca;
+            --primary-300: #fca5a5;
+            --primary-400: #f87171;
+            --primary-500: #b91c1c;
+            --primary-600: #991b1b;
+            --primary-700: #7f1d1d;
+            --primary-800: #450a0a;
+            --primary-900: #2d0606;
+
+            /* Light Theme Content Defaults */
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --glass-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.04);
             
-            --bg-main: #0b1120;
-            --bg-sidebar: #0f172a;
-            --bg-header: rgba(15, 23, 42, 0.5);
-            --bg-card: rgba(30, 41, 59, 0.7);
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.05);
-            --table-header: #1a1e2e;
+            --text-main: #0f172a; /* SLATE 900 */
+            --text-muted: #475569; /* SLATE 600 */
+            --table-header: #f1f5f9;
         }
 
-        html:not(.dark) {
-            --bg-main: #f1f5f9;
-            --bg-sidebar: #ffffff;
-            --bg-header: rgba(255, 255, 255, 0.8);
-            --bg-card: rgba(255, 255, 255, 0.95);
-            --text-main: #0f172a;
-            --text-muted: #475569;
-            --border-color: rgba(0, 0, 0, 0.08);
-            --table-header: #e2e8f0;
-        }
-
-        /* Standardize text and table elements to use variables */
-        .text-gray-50, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400, .text-white, .text-slate-50, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400 { color: var(--text-main) !important; }
-        .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900, .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-800, .text-slate-900 { color: var(--text-muted) !important; }
-        
-        .border-gray-800, .border-gray-700, .border-gray-600, .border-slate-800, .border-slate-700, .border-slate-600 { border-color: var(--border-color) !important; }
-        
-        .bg-gray-800, .bg-gray-900, .bg-slate-800, .bg-slate-900, .bg-[#1a1e2e], .bg-[#0f172a] { 
-            background-color: var(--bg-card) !important; 
-        }
-        
-        /* Buttons should be slightly different from cards to remain visible */
-        .btn-compact.bg-gray-800, .bg-gray-800[class*="hover:"], .p-1.5.bg-gray-800, button.bg-gray-800 {
-            background-color: var(--bg-main) !important;
-            border-color: var(--border-color) !important;
-        }
-
-        .bg-gray-700, .bg-slate-700 { background-color: var(--bg-main) !important; }
-        
-        /* Table and Input specific contrast fixes */
-        .table-excel { background: transparent !important; }
-        .table-excel th { color: var(--text-main) !important; background: var(--table-header) !important; border-color: var(--border-color) !important; }
-        .table-excel td { color: var(--text-main) !important; border-color: var(--border-color) !important; }
-        
-        input, select, textarea { 
-            background-color: var(--bg-main) !important; 
+        /* Global Text Enforcement for Light Mode */
+        html:not(.dark) main {
             color: var(--text-main) !important;
-            border-color: var(--border-color) !important;
         }
-        
-        input::placeholder {
+
+        html:not(.dark) .text-white:not(aside *, .bg-gradient-to-br *, .bg-gradient-to-r *, .btn-*, .swal2-*) {
+            color: var(--text-main) !important;
+        }
+
+        html:not(.dark) .text-gray-400:not(aside *, .bg-gradient-to-br *, .bg-gradient-to-r *, .glass-card *, .ultra-glass *) {
             color: var(--text-muted) !important;
-            opacity: 0.5;
         }
 
-        /* Sidebar background fix */
-        aside, .bg-[#0f172a] { background-color: var(--bg-sidebar) !important; }
-        header, .bg-[#0f172a]\/50 { background-color: var(--bg-header) !important; }
+        /* Sidebar Dark Enforcement (Slate 950) */
+        #main-sidebar {
+            background-color: #020617 !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        #main-sidebar .text-gray-500 { color: #94a3b8 !important; }
+        #main-sidebar .text-primary-500 { color: var(--primary-500) !important; }
+        #main-sidebar .text-white { color: #f8fafc !important; }
+        #main-sidebar .sidebar-link-active {
+            background: rgba(217, 119, 6, 0.15) !important;
+            color: var(--primary-400) !important;
+        }
+
+        .ultra-glass, .glass-card, .swal2-popup {
+            background: #ffffff;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05);
+        }
+
+        /* --- HYBRID LIGHT THEME INVERSION (FIX INVISIBLE TEXT) --- */
+        html:not(.dark) main :where(.bg-gray-800, .bg-gray-900, .bg-slate-800, .bg-slate-900, .bg-[#0f172a]) {
+            background-color: #ffffff !important;
+        }
         
-        /* Premium Sidebar Styling */
-        aside {
-            background-color: var(--bg-sidebar) !important;
-            border-right: 1px solid var(--border-color);
+        html:not(.dark) main :where(.text-white, .text-gray-100, .text-slate-100, .text-gray-200) {
+            color: #0f172a !important;
         }
 
-        aside a {
+        html:not(.dark) main :where(.text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500) {
+            color: #475569 !important;
+        }
+
+        html:not(.dark) main :where(.border-gray-700, .border-gray-800, .border-slate-700, .border-slate-800, .divide-gray-800) {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Input / Form Readability */
+        html:not(.dark) main :where(input:not([type="checkbox"]), select, textarea) {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        html:not(.dark) main :where(input::placeholder, select::placeholder, textarea::placeholder) {
+            color: #94a3b8 !important;
+        }
+
+        /* --- CHECKBOX VISIBILITY FIX --- */
+        input[type="checkbox"] {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            width: 1.15rem;
+            height: 1.15rem;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 4px !important;
+            background-color: #ffffff !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-grid;
+            place-content: center;
+            vertical-align: middle;
             position: relative;
-            color: var(--text-muted) !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin: 1px 8px;
-            padding-top: 4px !important;
-            padding-bottom: 4px !important;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #991b1b !important;
+            border-color: #991b1b !important;
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: "";
+            width: 0.65rem;
+            height: 0.65rem;
+            background-color: white;
+            clip-path: polygon(14% 44%, 0 58%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+            transform: scale(1);
+        }
+
+        html:not(.dark) input[type="checkbox"]:checked {
+            box-shadow: 0 0 10px rgba(153, 27, 27, 0.2);
+        }
+
+        /* Action Buttons Contrast handled by specific icon rules below */
+
+        /* EXCEPTION for Vibrant Dashboard Cards & Primary Buttons */
+        html:not(.dark) main :where(.bg-gradient-to-br, .bg-gradient-to-r, .bg-primary-600, .bg-primary-700) *,
+        html:not(.dark) main :where(.bg-gradient-to-br, .bg-gradient-to-r, .bg-primary-600, .bg-primary-700) {
+            color: #ffffff !important;
+            border-color: rgba(255,255,255,0.2) !important;
+        }
+        
+        /* Specific Fix for Icons in Primary Buttons */
+        html:not(.dark) main :where(.bg-primary-600, .bg-primary-700) i {
+            color: #ffffff !important;
+        }
+        
+        /* Table Cell Specific Fix */
+        .table-excel tbody tr { background-color: white !important; }
+        .table-excel tbody td { color: #0f172a !important; }
+        .table-excel thead th { border: 1px solid #e2e8f0 !important; }
+
+        /* Sidebar Item Styling (Dark Sidebar, Light Text) */
+        aside a, aside button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0px 16px;
+            padding: 5px 16px !important;
             border-radius: 8px;
+            color: #94a3b8 !important; /* Force light gray for dark sidebar */
+            font-weight: 600;
             display: flex;
             align-items: center;
         }
 
-        aside a i, aside a span {
-            background-color: transparent !important; /* Fix the boxes issue */
-            color: inherit !important;
-        }
-        
-        aside a:hover {
-            color: var(--text-main) !important;
-            background-color: rgba(255, 255, 255, 0.05) !important;
+        aside a:hover, aside button:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            transform: translateX(4px);
         }
 
         aside a.sidebar-link-active {
-            color: white !important;
-            background: linear-gradient(135deg, var(--primary-600), var(--primary-500)) !important;
-            box-shadow: 0 4px 15px -1px var(--primary-600);
+            background: rgba(217, 119, 6, 0.1) !important;
+            color: var(--primary-400) !important;
+            border-left: 3px solid var(--primary-500) !important;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            box-shadow: none !important;
         }
 
-        /* Glassmorphism for mode toggle/theme switcher area */
-        .sidebar-footer {
-            border-top: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(4px);
+        aside a.sidebar-link-active i {
+            color: var(--primary-500) !important;
         }
 
-        html:not(.dark) .sidebar-footer {
-            background: rgba(255, 255, 255, 0.5);
+        /* Table excel refinement */
+        .table-excel thead th {
+            background: var(--table-header) !important;
+            color: var(--text-main) !important;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 10px;
+            padding: 8px 12px;
+            border: none !important;
         }
 
-        /* Standardize action buttons for high visibility */
-        .btn-compact, .ph-arrow-counter-clockwise, .ph-magnifying-glass {
+        .table-excel tbody td {
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--glass-border) !important;
+            color: var(--text-main) !important;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .table-excel tbody tr:hover td {
+            background: rgba(217, 119, 6, 0.08) !important;
+            color: var(--text-main) !important;
+        }
+
+        /* --- GLOBAL ACTION BUTTON COLORS (TAMBAH, IMPORT, EXPORT) --- */
+        /* Tambah Button (Red) */
+        .btn-compact:has(.ph-plus-circle) {
+            background-color: #ef4444 !important; /* Red 500 */
             color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.3) !important;
         }
-        
-        .bg-gray-800.text-gray-300, .bg-slate-800.text-slate-300, .bg-gray-800.text-gray-400 {
-            color: #ffffff !important;
+        .btn-compact:has(.ph-plus-circle):hover {
+            background-color: #dc2626 !important; /* Red 600 */
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 15px -3px rgba(239, 68, 68, 0.4) !important;
         }
 
-        /* Navbar/Header glass effect */
-        header {
-            background-color: var(--bg-header) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
+        /* Import Button (Green) */
+        .btn-compact:has(.ph-file-arrow-up) {
+            background-color: #10b981 !important; /* Emerald 500 */
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3) !important;
         }
-        
-        /* Ensure table card uses theme background */
-        .glass-card { background-color: var(--bg-card) !important; }
+        .btn-compact:has(.ph-file-arrow-up):hover {
+            background-color: #059669 !important; /* Emerald 600 */
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 15px -3px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        /* Export Button (Blue) */
+        .btn-compact:has(.ph-export) {
+            background-color: #3b82f6 !important; /* Blue 500 */
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3) !important;
+        }
+        .btn-compact:has(.ph-export):hover {
+            background-color: #2563eb !important; /* Blue 600 */
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        .btn-compact {
+            border-radius: 8px !important;
+            padding: 4px 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 10px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* Action Icons Alignment Fix */
         .table-excel td .flex.justify-end.items-center,
@@ -207,6 +306,43 @@
             align-items: center;
             justify-content: center;
             vertical-align: middle;
+        }
+
+        /* --- GLOBAL COMPACT PAGINATION --- */
+        nav[role="navigation"] {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        nav[role="navigation"] p {
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            color: #64748b !important;
+        }
+        nav[role="navigation"] .relative.z-0.inline-flex {
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        nav[role="navigation"] .relative.z-0.inline-flex a,
+        nav[role="navigation"] .relative.z-0.inline-flex span[aria-current="page"] span,
+        nav[role="navigation"] .relative.z-0.inline-flex span[disabled] span {
+            padding: 0 !important;
+            font-size: 9px !important;
+            font-weight: 800 !important;
+            min-width: 22px !important;
+            height: 22px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            border-color: rgba(255,255,255,0.05) !important;
+        }
+        nav[role="navigation"] svg {
+            width: 8px !important;
+            height: 8px !important;
+            display: block !important;
         }
     </style>
     <style>
@@ -289,20 +425,49 @@
         }
 
         .table-excel tbody tr:hover td {
-            background-color: var(--primary-500);
-            color: white !important;
+            background-color: rgba(217, 119, 6, 0.08) !important;
+            color: var(--text-main) !important;
         }
 
         .table-excel .badge-compact {
             display: inline-flex;
             align-items: center;
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 0px 4px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.02em;
             line-height: 1.4;
+        }
+
+        /* Modal label fix */
+        .glass-card label, .modal-content label, label.block.text-gray-400 {
+            color: #ff8a8a !important; /* Soft bright red for labels on dark */
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            font-size: 10px !important;
+            opacity: 1 !important;
+            margin-bottom: 0.25rem !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Extreme compact forms */
+        .glass-card .space-y-5 {
+            gap: 0.75rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .glass-card input, .glass-card select, .glass-card textarea {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            font-size: 12px !important;
+        }
+
+        .glass-card .grid {
+            gap: 0.75rem !important;
         }
 
         /* Tighter Card & Button Spacing */
@@ -310,6 +475,26 @@
             background: var(--bg-card);
             backdrop-filter: blur(8px);
             border: 1px solid var(--border-color);
+        }
+
+        /* Modal button fix */
+        .glass-card button[type="button"], .modal-content button[type="button"] {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            font-weight: 700 !important;
+        }
+
+        .glass-card button[type="submit"], .modal-content button[type="submit"] {
+            background-color: var(--primary-600) !important;
+            color: #ffffff !important;
+            border: 1px solid var(--primary-500) !important;
+            font-weight: 800 !important;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2) !important;
+        }
+
+        .glass-card button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
         }
 
         .btn-compact {
@@ -328,13 +513,14 @@
         }
 
         /* Input fields readability */
-        input::placeholder, select::placeholder {
+        input::placeholder, select::placeholder, textarea::placeholder {
             color: var(--text-muted) !important;
-            opacity: 0.6;
+            opacity: 0.8 !important;
         }
 
-        input {
+        input, select, textarea {
             color: var(--text-main) !important;
+            background-color: white !important;
         }
     </style>
     </style>
@@ -399,9 +585,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.0/dist/turbo.es2017-umd.js"></script>
 </head>
 
-<body class="font-sans antialiased overflow-hidden" 
-    :class="{ 'text-gray-200': isDark, 'text-gray-900': !isDark }">
-    <div class="h-screen flex bg-inherit overflow-hidden relative">
+<body class="font-sans antialiased overflow-hidden mesh-gradient-bg transition-colors duration-500">
+    <div class="h-screen flex overflow-hidden relative">
 
         <!-- Mobile Sidebar Overlay -->
         <div x-show="isMobile && sidebarOpen" x-transition:enter="transition ease-out duration-300"
@@ -413,19 +598,21 @@
 
         <!-- Sidebar -->
         <aside id="main-sidebar" data-turbo-permanent
-            class="fixed inset-y-0 left-0 z-50 w-64 lg:w-52 bg-inherit border-r border-gray-800/10 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 h-full flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none"
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'"
-            style="background-color: var(--bg-sidebar);">
-            <div class="flex items-center justify-between px-6 py-2 h-14">
-                <div class="flex items-center">
-                    <img src="{{ asset('rolog.png') }}" alt="Logo" class="h-8 mr-3">
-                    <span
-                        class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 uppercase tracking-tighter">
-                        Invenlog Polda NTB
-                    </span>
+            class="fixed inset-y-0 left-0 z-50 w-64 lg:w-64 bg-[#020617] transition-all duration-500 ease-in-out lg:static lg:translate-x-0 h-full flex flex-col flex-shrink-0 shadow-2xl"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'">
+            
+            <div class="flex items-center justify-between px-6 py-4 h-16">
+                <div class="flex items-center group cursor-pointer">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-primary-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform">
+                        <img src="{{ asset('rolog.png') }}" alt="Logo" class="h-6">
+                    </div>
+                    <div class="ml-3 flex flex-col">
+                        <span class="text-xs font-black text-primary-500 uppercase tracking-[0.2em] leading-none mb-1">Invenlog</span>
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest leading-none">Polda NTB</span>
+                    </div>
                 </div>
-                <button @click="sidebarOpen = false" class="lg:hidden text-gray-400 hover:text-white">
-                    <i class="ph ph-x text-2xl"></i>
+                <button @click="sidebarOpen = false" class="lg:hidden text-gray-400 hover:text-primary-500 transition-colors">
+                    <i class="ph ph-x-circle text-2xl"></i>
                 </button>
             </div>
 
@@ -436,7 +623,7 @@
                     <span class="font-medium text-sm text-decoration-none">Dashboard</span>
                 </a>
 
-                <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-4 mt-3 mb-1 opacity-50">Manajemen</div>
+                <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-4 mt-1.5 mb-0.5 opacity-50">Manajemen</div>
 
                 <a href="{{ route('senjata.index') }}"
                     class="flex items-center px-4 py-1.5 rounded-xl transition-all {{ request()->routeIs('senjata.index') ? 'sidebar-link-active' : '' }}">
@@ -478,7 +665,8 @@
                 <div
                     x-data="{ open: {{ request()->routeIs('senjata.laporan-ringkas') || request()->routeIs('kendaraan.laporan-ringkas') || request()->routeIs('alsus-alsintor.laporan-ringkas') ? 'true' : 'false' }} }">
                     <button @click="open = !open"
-                        class="w-full flex items-center justify-between px-4 py-1.5 rounded-xl transition-all {{ request()->routeIs('senjata.laporan-ringkas') || request()->routeIs('kendaraan.laporan-ringkas') || request()->routeIs('alsus-alsintor.laporan-ringkas') ? 'sidebar-link-active' : '' }}">
+                        class="w-full flex items-center justify-between px-4 py-1 rounded-xl transition-all {{ request()->routeIs('senjata.laporan-ringkas') || request()->routeIs('kendaraan.laporan-ringkas') || request()->routeIs('alsus-alsintor.laporan-ringkas') ? 'sidebar-link-active' : '' }}"
+                        style="margin: 0px 16px; width: calc(100% - 32px); padding: 5px 16px !important;">
                         <div class="flex items-center whitespace-nowrap">
                             <i class="ph ph-chart-bar text-xl mr-2"></i>
                             <span class="font-medium text-sm">Laporan Ringkas</span>
@@ -487,69 +675,36 @@
                             :class="open ? 'rotate-180' : ''"></i>
                     </button>
                     <div x-show="open" x-collapse>
-                        <div class="ml-7 mt-1 space-y-0.5 border-l border-gray-700/50 pl-3">
+                        <div class="ml-7 mt-0 space-y-0.5 border-l border-gray-700/50 pl-3">
                             <a href="{{ route('senjata.laporan-ringkas') }}"
-                                class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('senjata.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
+                                class="flex items-center px-3 py-0.5 rounded-lg transition-all text-xs {{ request()->routeIs('senjata.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
                                 <i class="ph ph-shield mr-2 text-sm"></i> Senjata
                             </a>
                             <a href="{{ route('kendaraan.laporan-ringkas') }}"
-                                class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('kendaraan.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
+                                class="flex items-center px-3 py-1 rounded-lg transition-all text-xs {{ request()->routeIs('kendaraan.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
                                 <i class="ph ph-car mr-2 text-sm"></i> Kendaraan
                             </a>
                             <a href="{{ route('alsus-alsintor.laporan-ringkas') }}"
-                                class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('alsus-alsintor.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
+                                class="flex items-center px-3 py-1 rounded-lg transition-all text-xs {{ request()->routeIs('alsus-alsintor.laporan-ringkas') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
                                 <i class="ph ph-gear mr-2 text-sm"></i> Alsus & Alsintor
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest px-4 mt-3 mb-1 opacity-50">Pengajuan Berkas</div>
-
-                <!-- Pengajuan Berkas Dropdown -->
-                <div
-                    x-data="{ open: {{ request()->routeIs('pengajuan-berkas.*') || request()->routeIs('persyaratan-berkas.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open"
-                        class="w-full flex items-center justify-between px-4 py-1 rounded-xl transition-all hover:bg-gray-800 {{ request()->routeIs('pengajuan-berkas.*') || request()->routeIs('persyaratan-berkas.*') ? 'sidebar-link-active' : 'text-gray-400' }}">
-                        <div class="flex items-center whitespace-nowrap">
-                            <i class="ph ph-folder-open text-xl mr-2"></i>
-                            <span class="font-medium text-sm">Pengajuan</span>
-                        </div>
-                        <i class="ph ph-caret-down text-xs transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''"></i>
-                    </button>
-                    <div x-show="open" x-collapse>
-                        <div class="ml-7 mt-1 space-y-0.5 border-l border-gray-700/50 pl-3">
-                            <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penghapusan']) }}"
-                                class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('pengajuan-berkas.*') && request('kategori') === 'penghapusan' ? 'bg-red-600/20 text-red-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
-                                <i class="ph ph-trash mr-2 text-sm"></i> Penghapusan Barang
-                            </a>
-                            <a href="{{ route('pengajuan-berkas.index', ['kategori' => 'penetapan_status']) }}"
-                                class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('pengajuan-berkas.*') && request('kategori') === 'penetapan_status' ? 'bg-blue-600/20 text-blue-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
-                                <i class="ph ph-stamp mr-2 text-sm"></i> Penetapan Status
-                            </a>
-                            @if(in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                                <a href="{{ route('persyaratan-berkas.index') }}"
-                                    class="flex items-center px-3 py-1.5 rounded-lg transition-all text-xs {{ request()->routeIs('persyaratan-berkas.*') ? 'bg-primary-600/20 text-primary-400 font-bold' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50' }}">
-                                    <i class="ph ph-list-checks mr-2 text-sm"></i> Persyaratan
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
                 @if(in_array(auth()->user()->role, ['Super Admin', 'Super Admin 2']))
-                    <div class="px-4 mt-3 mb-1">
+                    <div class="px-4 mt-1.5 mb-0.5">
                         <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest opacity-50">Master Data</p>
                     </div>
                     <div class="px-3 space-y-0.5 mb-1">
                         @if(auth()->user()->role === 'Super Admin')
                             <a href="{{ route('activity-logs.index') }}"
-                                class="flex items-center px-4 py-1.5 rounded-xl transition-all {{ request()->routeIs('activity-logs.*') ? 'sidebar-link-active' : '' }}">
+                                class="flex items-center px-4 py-1 rounded-xl transition-all {{ request()->routeIs('activity-logs.*') ? 'sidebar-link-active' : '' }}">
                                 <i class="ph ph-clock-counter-clockwise mr-2 text-xl"></i>
                                 <span class="text-sm font-semibold">Log Aktivitas</span>
                             </a>
                             <a href="{{ route('users.index') }}"
-                                class="flex items-center px-4 py-1.5 rounded-xl transition-all {{ request()->routeIs('users.*') ? 'sidebar-link-active' : '' }}">
+                                class="flex items-center px-4 py-1 rounded-xl transition-all {{ request()->routeIs('users.*') ? 'sidebar-link-active' : '' }}">
                                 <i class="ph ph-users mr-2 text-xl"></i>
                                 <span class="text-sm font-semibold">User</span>
                             </a>
@@ -563,48 +718,26 @@
                 @endif
 
             </nav>
-
-            <!-- Theme Switcher (Fixed Bottom) -->
-            <div class="px-4 py-3 sidebar-footer mt-auto">
-                <div class="flex items-center justify-between mb-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                    <span>Tema & Warna</span>
-                    <button @click="toggleDark()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors" :title="isDark ? 'Pindah ke Terang' : 'Pindah ke Gelap'">
-                        <i class="ph text-base" :class="isDark ? 'ph-sun text-amber-500' : 'ph-moon text-indigo-500'"></i>
-                    </button>
-                </div>
-                
-                <div class="flex flex-wrap gap-1.5">
-                    <template x-for="(themeColor, name) in themes" :key="name">
-                        <button @click="setTheme(name)" 
-                            class="w-5 h-5 rounded-full border border-white/20 transition-all flex items-center justify-center group overflow-hidden relative"
-                            :class="currentTheme === name ? 'ring-2 ring-primary-500 ring-offset-2 ring-offset-[#0f172a]' : 'opacity-60 hover:opacity-100'"
-                            :title="name">
-                            <div class="absolute inset-0" :style="`background-color: ${themeColor['500']}`"></div>
-                            <i x-show="currentTheme === name" class="ph ph-check text-white text-[8px] z-10"></i>
-                        </button>
-                    </template>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto custom-scrollbar">
+        <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-slate-50/50">
             <!-- Top Header -->
-            <header
-                class="h-16 lg:h-20 backdrop-blur-md border-b border-gray-800/10 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 transition-colors"
-                style="background-color: var(--bg-header);">
+            <header class="h-16 flex items-center justify-between px-6 lg:px-8 z-40 transition-all border-b border-slate-200/50 bg-white/50 backdrop-blur-md">
                 <div class="flex items-center">
                     <button @click="sidebarOpen = !sidebarOpen"
-                        class="mr-4 lg:mr-6 text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800">
+                        class="mr-4 lg:mr-6 text-primary-500 hover:scale-110 transition-all p-2.5 ultra-glass rounded-2xl flex items-center justify-center">
                         <i class="ph ph-list text-2xl"></i>
                     </button>
-                    <h2 class="text-base lg:text-lg font-semibold text-gray-100 truncate max-w-[150px] sm:max-w-none">
-                        {{ $header ?? 'Beranda' }}
-                    </h2>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-primary-500/60 uppercase tracking-[0.2em] mb-0.5">Halaman</span>
+                        <h2 class="text-lg lg:text-2xl font-black text-gray-800 dark:text-white tracking-tight">
+                            {{ $header ?? 'Beranda' }}
+                        </h2>
+                    </div>
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <!-- Notification Bell -->
                     <div class="relative" x-data="{
                         notifOpen: false,
                         notifications: [],
@@ -640,8 +773,8 @@
                         }
                     }" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 30000)">
                         <button @click="notifOpen = !notifOpen" @click.away="notifOpen = false"
-                            class="relative p-2 text-gray-400 hover:text-white transition-colors focus:outline-none rounded-full bg-gray-800/50 border border-gray-700 hover:bg-gray-700/50">
-                            <i class="ph ph-bell text-xl"></i>
+                            class="relative w-11 h-11 flex items-center justify-center text-primary-500 hover:scale-105 active:scale-95 transition-all ultra-glass rounded-2xl">
+                            <i class="ph ph-bell text-2xl"></i>
                             <template x-if="unreadCount > 0">
                                 <span class="absolute top-0 right-0 flex h-3 w-3">
                                     <span
@@ -721,13 +854,16 @@
                     <!-- Profile Dropdown -->
                     <div class="relative" x-data="{ profileOpen: false }">
                         <button @click="profileOpen = !profileOpen" @click.away="profileOpen = false"
-                            class="flex items-center px-4 py-2 bg-gray-800/50 rounded-full border border-gray-700 hover:bg-gray-700/50 transition-colors focus:outline-none">
+                            class="flex items-center pl-1.5 pr-4 py-1.5 ultra-glass rounded-2xl hover:scale-[1.02] active:scale-95 transition-all focus:outline-none">
                             <div
-                                class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white mr-3 font-bold text-xs">
+                                class="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary-600 to-indigo-500 shadow-lg shadow-primary-500/30 flex items-center justify-center text-white mr-3 font-black text-xs uppercase">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-                            <span class="text-sm font-medium text-gray-200 mr-2">{{ Auth::user()->name }}</span>
-                            <i class="ph ph-caret-down text-gray-400 text-xs transition-transform duration-200"
+                            <div class="flex flex-col items-start mr-3">
+                                <span class="text-xs font-black text-gray-800 dark:text-white uppercase tracking-wider leading-none mb-0.5">{{ Auth::user()->name }}</span>
+                                <span class="text-[9px] font-bold text-primary-500/60 uppercase tracking-widest leading-none">{{ auth()->user()->role }}</span>
+                            </div>
+                            <i class="ph ph-caret-down text-primary-500 text-xs transition-transform duration-300"
                                 :class="profileOpen ? 'rotate-180' : ''"></i>
                         </button>
 
@@ -768,22 +904,28 @@
             </header>
 
             <!-- Content Area -->
-            <main class="flex-1 overflow-y-auto p-8">
-                {{ $slot }}
+            <main class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6">
+                <div class="max-w-[1600px] mx-auto">
+                    {{ $slot }}
+                </div>
             </main>
         </div>
     </div>
 
     <!-- Floating Chat Widget -->
-    <div x-data="chatWidget()" class="fixed bottom-6 right-6 z-[60]">
+    <div x-data="chatWidget()" 
+        class="fixed z-[60] select-none"
+        :style="'bottom: ' + posY + 'px; right: ' + posX + 'px;'"
+        @mousedown="startDrag($event)"
+        @touchstart="startDrag($event)">
 
         <!-- Chat Trigger Button -->
         <button @click="toggleChat"
-            class="w-14 h-14 bg-gradient-to-tr from-red-600 to-yellow-500 rounded-2xl shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all relative group">
-            <i class="ph ph-chat-centered-dots text-2xl group-hover:rotate-12 transition-transform"></i>
+            class="w-12 h-12 bg-gradient-to-tr from-red-600 to-yellow-500 rounded-2xl shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-transform relative group cursor-move">
+            <i class="ph ph-chat-centered-dots text-xl group-hover:rotate-12 transition-transform"></i>
             <template x-if="unreadCount > 0">
                 <span
-                    class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-full border-2 border-[#0f172a]"
+                    class="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#0f172a]"
                     x-text="unreadCount"></span>
             </template>
         </button>
@@ -795,7 +937,7 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
             x-transition:leave-end="opacity-0 translate-y-10 scale-90"
-            class="absolute bottom-20 right-0 w-96 max-w-[calc(100vw-2rem)] h-[500px] bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+            class="absolute bottom-16 right-0 w-80 max-w-[calc(100vw-2rem)] h-[450px] bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
             <!-- Chat Header -->
             <div
@@ -895,7 +1037,7 @@
             return {
                 sidebarOpen: window.innerWidth >= 1024,
                 isMobile: window.innerWidth < 1024,
-                isDark: true,
+                isDark: false,
                 currentTheme: 'Azure',
                 themes: {
                     'Azure': {'50': '#f0f9ff', '100': '#e0f2fe', '200': '#bae6fd', '300': '#7dd3fc', '400': '#38bdf8', '500': '#0ea5e9', '600': '#0284c7', '700': '#0369a1', '800': '#075985', '900': '#0c4a6e'},
@@ -912,7 +1054,8 @@
                         if (!this.isMobile) this.sidebarOpen = true;
                     });
 
-                    this.isDark = localStorage.getItem('isDark') === 'false' ? false : true;
+                    // Change default detect logic
+                    this.isDark = localStorage.getItem('isDark') === 'true';
                     this.currentTheme = localStorage.getItem('theme') || 'Azure';
                     
                     // Initial theme apply
@@ -959,9 +1102,48 @@
                 unreadCount: 0,
                 pollingInterval: null,
                 msgInterval: null,
+                posX: 24,
+                posY: 24,
+                isDragging: false,
+                startX: 0,
+                startY: 0,
                 init() {
                     this.updateStatus();
                     this.pollingInterval = setInterval(() => this.updateStatus(), 10000);
+                },
+                startDrag(e) {
+                    if (this.chatOpen) return; // Disable drag when chat is open
+                    this.isDragging = true;
+                    this.startX = (e.clientX || e.touches[0].clientX);
+                    this.startY = (e.clientY || e.touches[0].clientY);
+                    
+                    const onMove = (e) => {
+                        if (!this.isDragging) return;
+                        const currX = (e.clientX || e.touches[0].clientX);
+                        const currY = (e.clientY || e.touches[0].clientY);
+                        
+                        const dx = this.startX - currX;
+                        const dy = this.startY - currY;
+                        
+                        this.posX += dx;
+                        this.posY += dy;
+                        
+                        this.startX = currX;
+                        this.startY = currY;
+                    };
+                    
+                    const onEnd = () => {
+                        this.isDragging = false;
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onEnd);
+                        window.removeEventListener('touchmove', onMove);
+                        window.removeEventListener('touchend', onEnd);
+                    };
+                    
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onEnd);
+                    window.addEventListener('touchmove', onMove, { passive: false });
+                    window.addEventListener('touchend', onEnd);
                 },
                 toggleChat() {
                     this.chatOpen = !this.chatOpen;
@@ -1122,7 +1304,30 @@
                 });
         };
 
-        document.addEventListener('turbo:load', function () {
+        window.addEventListener('turbo:before-cache', function() {
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+        });
+
+        window.addEventListener('turbo:before-cache', function() {
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+        });
+
+        window.addEventListener('turbo:visit', function() {
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+        });
+
+        document.addEventListener('turbo:load', function (event) {
+            // JANGAN tampilkan alert jika ini hanya preview dari cache Turbo
+            if (document.body.hasAttribute('data-turbo-preview')) {
+                if (typeof Swal !== 'undefined') Swal.close();
+                return;
+            }
             // Update Sidebar active links automatically
             const currentPath = window.location.pathname;
             const sidebarLinks = Array.from(document.querySelectorAll('#main-sidebar a, #main-sidebar button')).filter(el => el.href);
@@ -1155,21 +1360,34 @@
             });
 
             @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: "{{ session('success') }}",
-                    timer: 3000,
-                    showConfirmButton: false
-                });
+                // Pastikan alert hanya muncul sekali per flash message
+                const msg = "{{ session('success') }}";
+                const lastMsg = sessionStorage.getItem('last_success_msg');
+                
+                if (lastMsg !== msg) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: msg,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                    sessionStorage.setItem('last_success_msg', msg);
+                }
             @endif
 
             @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Akses Ditolak',
-                    text: "{{ session('error') }}",
-                });
+                const errMsg = "{{ session('error') }}";
+                const lastErrMsg = sessionStorage.getItem('last_error_msg');
+                
+                if (lastErrMsg !== errMsg) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Akses Ditolak',
+                        text: errMsg,
+                    });
+                    sessionStorage.setItem('last_error_msg', errMsg);
+                }
             @endif
         });
     </script>

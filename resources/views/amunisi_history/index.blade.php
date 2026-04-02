@@ -3,7 +3,7 @@
         Riwayat Penggunaan Amunisi
     </x-slot>
 
-    <div class="space-y-6 animate-fade-in">
+    <div class="space-y-4 animate-fade-in">
         <!-- Action & Filter Bar -->
         <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in text-xs">
             <!-- Left: Title -->
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Table -->
-        <div class="glass-card rounded-3xl overflow-hidden">
+        <div class="glass-card rounded-xl overflow-hidden mt-2">
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="table-excel">
                     <thead>
@@ -103,7 +103,7 @@
                 </table>
             </div>
             @if($histories->hasPages())
-                <div class="px-6 py-4 border-t border-gray-800 bg-gray-800/20">
+                <div class="px-4 py-0.5 border-t border-gray-800 bg-gray-800/10">
                     {{ $histories->links() }}
                 </div>
             @endif

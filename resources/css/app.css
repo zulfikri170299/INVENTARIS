@@ -2,7 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+.dark {
+    --glass-bg: rgba(15, 23, 42, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+/* Mesh Gradient Background - Light Mode */
+.mesh-gradient-bg {
+    background-color: #f8fafc; /* SLATE 50 */
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(210, 40%, 98%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(38, 92%, 95%, 0.5) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(210, 40%, 98%, 1) 0, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Ultra Glass Effect - Light Mode */
+.ultra-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.05);
+}
+
 .turbo-progress-bar {
     height: 3px;
-    background-color: #0ea5e9; /* primary-500 equivalent */
+    background: linear-gradient(to right, #d97706, #f59e0b);
+}
+
+@keyframes slide-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.5s ease-out forwards;
 }

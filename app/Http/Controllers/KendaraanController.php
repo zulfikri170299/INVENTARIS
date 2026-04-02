@@ -116,6 +116,21 @@ class KendaraanController extends Controller
         return redirect()->route('kendaraan.index')->with('success', 'Data kendaraan berhasil diperbarui.');
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $count = count($ids);
+        Kendaraan::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal Kendaraan', "Menghapus $count data kendaraan secara masal.", 'Kendaraan');
+
+        return response()->json(['status' => 'success', 'message' => "$count data kendaraan berhasil dihapus."]);
+    }
+
     public function destroy($id)
     {
         $kendaraan = Kendaraan::findOrFail($id);

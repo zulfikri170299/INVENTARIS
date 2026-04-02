@@ -7,7 +7,6 @@ use App\Models\Kendaraan;
 use App\Models\Alsus;
 use App\Models\Alsintor;
 use App\Models\Amunisi;
-use App\Models\PengajuanBerkas;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -17,7 +16,6 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $satkerId = $user->satker_id;
-        $isSuperAdmin = in_array($user->role, ['Super Admin', 'Super Admin 2']);
 
         // Base queries
         $senjataQuery = Senjata::with('satker');
@@ -70,43 +68,10 @@ class DashboardController extends Controller
         $simsaSafeCount = (clone $simsaBaseQuery)->where('masa_berlaku_simsa', '>', $thirtyDaysLater->toDateString())->count();
         $totalSimsa = $simsaBaseQuery->count();
 
-        // Recent Pengajuan Berkas (for Stats)
-        $pengajuanQuery = PengajuanBerkas::query();
-        if ($satkerId && !$isSuperAdmin) {
-            $pengajuanQuery->where('satker_id', $satkerId);
-        }
-
-        // Penghapusan Stats
-        $penghapusanQuery = (clone $pengajuanQuery)->where('kategori', 'penghapusan');
-        $penghapusanCounts = [
-            'diajukan' => (clone $penghapusanQuery)->where('status', 'diajukan')->count(),
-            'diterima' => (clone $penghapusanQuery)->where('status', 'diterima')->count(),
-            'diproses' => (clone $penghapusanQuery)->where('status', 'diproses')->count(),
-            'dikembalikan' => (clone $penghapusanQuery)->where('status', 'dikembalikan')->count(),
-            'naik_ke_kapolda' => (clone $penghapusanQuery)->where('status', 'naik_ke_kapolda')->count(),
-            'ditandatangani' => (clone $penghapusanQuery)->where('status', 'ditandatangani')->count(),
-            'selesai' => (clone $penghapusanQuery)->where('status', 'selesai')->count(),
-        ];
-        $totalPenghapusan = array_sum($penghapusanCounts);
-
-        // Penetapan Status Stats
-        $penetapanQuery = (clone $pengajuanQuery)->where('kategori', 'penetapan_status');
-        $penetapanCounts = [
-            'diajukan' => (clone $penetapanQuery)->where('status', 'diajukan')->count(),
-            'diterima' => (clone $penetapanQuery)->where('status', 'diterima')->count(),
-            'diproses' => (clone $penetapanQuery)->where('status', 'diproses')->count(),
-            'dikembalikan' => (clone $penetapanQuery)->where('status', 'dikembalikan')->count(),
-            'naik_ke_kapolda' => (clone $penetapanQuery)->where('status', 'naik_ke_kapolda')->count(),
-            'ditandatangani' => (clone $penetapanQuery)->where('status', 'ditandatangani')->count(),
-            'selesai' => (clone $penetapanQuery)->where('status', 'selesai')->count(),
-        ];
-        $totalPenetapan = array_sum($penetapanCounts);
-
         return view('dashboard', compact(
             'totalSenjata', 'totalKendaraan', 'totalAlsus', 'totalAlsintor', 'totalAmunisi',
             'kendaraanR2', 'kendaraanR4', 'kendaraanR6', 'kendaraanR8',
             'senjataPanjang', 'senjataPendek', 'senjataGudang', 'senjataPersonel',
-            'penghapusanCounts', 'totalPenghapusan', 'penetapanCounts', 'totalPenetapan',
             'simsaExpiredCount', 'simsaNearExpiryCount', 'simsaSafeCount', 'totalSimsa'
         ));
     }

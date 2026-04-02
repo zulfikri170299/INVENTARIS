@@ -103,6 +103,55 @@ class SatkerController extends Controller implements HasMiddleware
         return redirect()->route('satker.index')->with('success', 'Satuan Kerja berhasil diperbarui.');
     }
 
+    /**
+     * Remove multiple resources from storage.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $satkers = Satker::whereIn('id', $ids)->withCount(['senjatas', 'kendaraans', 'alsuses', 'alsintors', 'amunisis'])->get();
+        
+        $deletableIds = [];
+        $hasInventory = false;
+
+        foreach ($satkers as $satker) {
+            $inventoryTotal = $satker->senjatas_count + $satker->kendaraans_count + $satker->alsuses_count + $satker->alsintors_count + $satker->amunisis_count;
+            
+            if ($inventoryTotal > 0) {
+                $hasInventory = true;
+                continue;
+            }
+            $deletableIds[] = $satker->id;
+        }
+
+        if (empty($deletableIds)) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Gagal menghapus. Semua Satker yang dipilih masih memiliki data inventaris terdaftar.'
+            ], 400);
+        }
+
+        $count = count($deletableIds);
+        
+        // Delete associated users first
+        User::whereIn('satker_id', $deletableIds)->delete();
+        // Delete satkers
+        Satker::whereIn('id', $deletableIds)->delete();
+
+        $this->logActivity('Hapus Masal Satker', "Menghapus $count data satker secara masal.", 'Manajemen Satker');
+
+        $message = "$count data satker berhasil dihapus.";
+        if ($hasInventory) {
+            $message .= " Beberapa satker dilewati karena masih memiliki data inventaris.";
+        }
+
+        return response()->json(['status' => 'success', 'message' => $message]);
+    }
+
     public function destroy(Satker $satker)
     {
         // Check for inventory dependencies

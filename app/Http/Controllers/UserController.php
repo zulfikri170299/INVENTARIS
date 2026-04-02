@@ -134,6 +134,33 @@ class UserController extends Controller implements HasMiddleware
     }
 
     /**
+     * Remove multiple resources from storage.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        // Prevent self-deletion in bulk
+        $ids = array_filter($ids, function($id) {
+            return $id != auth()->id();
+        });
+
+        if (empty($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak bisa menghapus akun sendiri.'], 400);
+        }
+
+        $count = count($ids);
+        User::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal User', "Menghapus $count data user secara masal.", 'Manajemen User');
+
+        return response()->json(['status' => 'success', 'message' => "$count data user berhasil dihapus."]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(User $user)

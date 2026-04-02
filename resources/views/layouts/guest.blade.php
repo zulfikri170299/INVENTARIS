@@ -52,22 +52,23 @@
     </script>
     <style>
         body {
-            background-color: #0f172a;
+            background-color: #f8fafc; /* Slate 50 */
             background-image:
-                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
         }
 
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
 
-<body class="font-sans text-gray-100 antialiased min-h-screen flex flex-col justify-center items-center">
+<body class="font-sans text-gray-800 antialiased min-h-screen flex flex-col justify-center items-center">
     <div class="w-full max-w-md px-6 py-4">
         {{ $slot }}
     </div>

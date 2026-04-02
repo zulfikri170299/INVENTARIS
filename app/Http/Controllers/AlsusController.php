@@ -99,6 +99,21 @@ class AlsusController extends Controller
         return redirect()->route('alsus.index')->with('success', 'Data alsus berhasil diperbarui.');
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $count = count($ids);
+        Alsus::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal Alsus', "Menghapus $count data alsus secara masal.", 'Alsus');
+
+        return response()->json(['status' => 'success', 'message' => "$count data alsus berhasil dihapus."]);
+    }
+
     public function destroy($id)
     {
         $alsus = Alsus::findOrFail($id);

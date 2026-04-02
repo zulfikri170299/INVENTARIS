@@ -3,11 +3,11 @@
         Laporan Ringkas Alsus & Alsintor
     </x-slot>
 
-    <div class="space-y-6 animate-fade-in">
+    <div class="space-y-4 animate-fade-in">
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div class="glass-card rounded-2xl p-4 text-center border-t-2 border-primary-500">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="glass-card rounded-2xl p-3 text-center border-t-2 border-primary-500">
                 <div class="text-3xl font-black text-primary-400">{{ number_format($stats['total']) }}</div>
                 <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Total Semua</div>
             </div>
@@ -93,7 +93,7 @@
 
         <!-- Table -->
         <div class="glass-card rounded-3xl overflow-hidden">
-            <div class="px-8 py-5 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 border-b border-gray-800">
+            <div class="px-6 py-3 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 border-b border-gray-800">
                 <h3 class="text-base font-bold text-gray-100 flex items-center">
                     <i class="ph ph-chart-bar mr-3 text-xl text-indigo-400"></i>
                     Laporan Ringkas Data Alsus dan Alsintor

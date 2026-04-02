@@ -97,6 +97,21 @@ class AlsintorController extends Controller
         return redirect()->route('alsintor.index')->with('success', 'Data alsintor berhasil diperbarui.');
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $count = count($ids);
+        Alsintor::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal Alsintor', "Menghapus $count data alsintor secara masal.", 'Alsintor');
+
+        return response()->json(['status' => 'success', 'message' => "$count data alsintor berhasil dihapus."]);
+    }
+
     public function destroy($id)
     {
         $alsintor = Alsintor::findOrFail($id);

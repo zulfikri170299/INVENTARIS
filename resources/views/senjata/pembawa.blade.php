@@ -29,7 +29,7 @@
         </div>
     @endif
 
-    <div class="space-y-6 animate-fade-in" x-data="{ 
+    <div class="space-y-4 animate-fade-in" x-data="{ 
         showAddModal: false, 
         showEditModal: false, 
         showReturnModal: false,
@@ -116,18 +116,75 @@
             } finally {
                 this.loading = false;
             }
+        },
+        selectedIds: [],
+        get allSelected() {
+            return this.selectedIds.length === {{ $senjatas->count() }} && {{ $senjatas->count() }} > 0;
+        },
+        toggleAll() {
+            if (this.allSelected) {
+                this.selectedIds = [];
+            } else {
+                this.selectedIds = [
+                    @foreach($senjatas as $s)
+                        {{ $s->id }},
+                    @endforeach
+                ];
+            }
+        },
+        async submitBulkDelete() {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Hapus Terpilih?',
+                text: `Anda akan menghapus ${this.selectedIds.length} data senjata secara masal!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#991b1b',
+                cancelButtonColor: '#1e293b',
+                confirmButtonText: 'Ya, Hapus Semua!',
+                cancelButtonText: 'Batal',
+                background: '#0f172a',
+                color: '#ffffff'
+            });
+            
+            if (isConfirmed) {
+                try {
+                    const res = await fetch('{{ route('senjata.bulk-delete') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ ids: this.selectedIds })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: data.message,
+                            icon: 'success',
+                            background: '#0f172a',
+                            color: '#ffffff',
+                            confirmButtonColor: '#991b1b'
+                        }).then(() => location.reload());
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
+                }
+            }
         }
-    }">
+        }">
 
         <!-- Action & Filter Bar -->
-        <div class="glass-card p-2 px-3 rounded-xl flex flex-wrap items-center justify-between gap-3 animate-fade-in relative z-50">
-            <!-- Left: Action Buttons -->
-            <div class="flex items-center gap-2">
-                <button @click="showAddModal = true; addStatus = 'Personel'"
-                    class="btn-compact bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all shadow-lg shadow-primary-500/20 group flex items-center">
-                    <i class="ph ph-plus-circle text-lg mr-1.5 group-hover:rotate-90 transition-transform"></i>
-                    Tambah
-                </button>
+        <div class="glass-card p-4 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            
+            <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button @click="showAddModal = true; addStatus = 'Personel'" 
+                        class="btn-compact bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20 px-4 py-2 text-sm font-bold flex items-center gap-2 rounded-xl transition-all active:scale-95 text-white">
+                        <i class="ph-bold ph-plus-circle text-lg"></i>
+                        TAMBAH
+                    </button>
                 
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open"
@@ -156,6 +213,16 @@
                     class="btn-compact bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition-all flex items-center px-2">
                     <i class="ph ph-file-arrow-up text-lg mr-1"></i>
                     Import
+                </button>
+
+                <!-- Bulk Action Button -->
+                <button x-show="selectedIds.length > 0" @click="submitBulkDelete"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform scale-95"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    class="btn-compact bg-primary-600 hover:bg-primary-700 text-white border border-primary-500 font-bold transition-all flex items-center px-3 shadow-lg shadow-primary-900/20">
+                    <i class="ph ph-trash text-lg mr-1.5"></i>
+                    Hapus Terpilih (<span x-text="selectedIds.length"></span>)
                 </button>
             </div>
 
@@ -205,12 +272,12 @@
         </div>
 
         <!-- Table Section -->
-        <div class="glass-card rounded-2xl lg:rounded-3xl overflow-hidden">
-            <div class="px-4 lg:px-8 py-4 bg-gray-800/10 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="glass-card rounded-xl overflow-hidden mt-4">
+            <div class="px-4 py-2 bg-gray-800/10 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="flex items-center space-x-2 text-gray-400">
-                    <span class="text-[10px] lg:text-xs uppercase font-semibold">Tampilkan:</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider">Tampilkan:</span>
                     <select onchange="window.location.href = this.value"
-                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-xs rounded-xl px-3 py-1 focus:ring-primary-500">
+                        class="bg-gray-800/50 border border-gray-700 text-gray-200 text-[10px] rounded-lg pl-2 pr-8 py-0.5 focus:ring-primary-500">
                         @foreach([10, 25, 50, 100] as $size)
                             <option value="{{ request()->fullUrlWithQuery(['per_page' => $size]) }}" {{ (request('per_page') ?? 10) == $size ? 'selected' : '' }}>
                                 {{ $size }}
@@ -226,14 +293,18 @@
                 <table class="table-excel">
                     <thead>
                         <tr>
+                            <th class="w-10 text-center">
+                                <input type="checkbox" @click="toggleAll" :checked="allSelected"
+                                    class="rounded border-gray-300 bg-white text-primary-600 focus:ring-primary-600 accent-primary-600 transition-all cursor-pointer">
+                            </th>
                             <th class="w-10 text-center">NO</th>
                             <th>Satker</th>
                             <th>Jenis Senpi</th>
                             <th>Laras</th>
                             <th>NUP</th>
                             <th>No. Senpi</th>
-                            <th>Kondisi</th>
-                            <th class="text-center">Jumlah Amunisi</th>
+                            <th class="min-w-[100px]">Kondisi</th>
+                            <th class="text-center">Amunisi</th>
                             <th>Nama</th>
                             <th>Pangkat/NRP</th>
                             <th class="text-center">Masa SIMSA</th>
@@ -254,24 +325,29 @@
                                     $rowClass = 'bg-yellow-500/5';
                                 }
                             @endphp
-                            <tr class="transition-colors {{ $rowClass }}">
+                            <tr class="transition-colors group text-[11px] {{ $rowClass }}" :class="selectedIds.includes({{ $senjata->id }}) ? 'bg-primary-500/5' : ''">
+                                <td class="text-center">
+                                    <input type="checkbox" :value="{{ $senjata->id }}" x-model="selectedIds"
+                                        class="rounded border-gray-300 bg-white text-primary-600 focus:ring-primary-600 accent-primary-600 transition-all cursor-pointer">
+                                </td>
                                 <td class="text-center font-bold text-gray-500">
                                     {{ $loop->iteration + ($senjatas->firstItem() - 1) }}
                                 </td>
-                                <td class="font-medium">{{ $senjata->satker->nama_satker ?? '-' }}</td>
+                                <td class="text-[10px]">{{ $satker_names[$senjata->satker_id] ?? '-' }}</td>
                                 <td class="font-bold text-gray-100">{{ $senjata->jenis_senpi }}</td>
-                                <td class="text-xs text-gray-400">{{ $senjata->laras }}</td>
-                                <td class="font-mono text-xs">{{ $senjata->nup ?? '-' }}</td>
-                                <td class="font-mono text-xs">{{ $senjata->no_senpi ?? '-' }}</td>
-                                <td>
+                                <td class="text-gray-400">{{ $senjata->laras }}</td>
+                                <td class="font-mono text-[10px] text-gray-500">{{ $senjata->nup }}</td>
+                                <td class="font-mono text-gray-100">{{ $senjata->no_senpi ?? '-' }}</td>
+                                <td class="whitespace-nowrap">
                                     @php
-                                        $condColor = match ($senjata->kondisi) {
-                                            'Baik' => 'bg-green-500/10 text-green-400 border-green-500/20',
-                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-                                            default => 'bg-red-500/10 text-red-400 border-red-500/20'
+                                        $konColor = match ($senjata->kondisi) {
+                                            'Baik' => 'bg-green-500/10 text-green-500 border-green-500/20',
+                                            'Rusak Ringan' => 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+                                            'Rusak Berat' => 'bg-red-500/10 text-red-500 border-red-500/20',
+                                            default => 'bg-gray-500/10 text-gray-400 border-gray-700/50'
                                         };
                                     @endphp
-                                    <span class="badge-compact border {{ $condColor }}">
+                                    <span class="badge-compact border {{ $konColor }}">
                                         {{ $senjata->kondisi }}
                                     </span>
                                 </td>
@@ -321,7 +397,7 @@
                 </table>
             </div>
             @if($senjatas->hasPages())
-                <div class="px-8 py-4 border-t border-gray-800 bg-gray-800/20">
+                <div class="px-4 py-0.5 border-t border-gray-800 bg-gray-800/10">
                     {{ $senjatas->links() }}
                 </div>
             @endif

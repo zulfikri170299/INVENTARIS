@@ -268,8 +268,9 @@ class SenjataController extends Controller
         }
 
         $this->logActivity('Update Senjata', 'Memperbarui data senjata: ' . $senjata->jenis_senpi . ' (NUP: ' . ($senjata->nup ?? '-') . ')', 'Senjata');
-
-        return redirect()->route('senjata.index')->with('success', 'Data senjata berhasil diperbarui.');
+        
+        $route = $senjata->status_penyimpanan === 'Personel' ? 'senjata.pembawa' : 'senjata.index';
+        return redirect()->route($route)->with('success', 'Data senjata berhasil diperbarui.');
     }
 
     public function returnAmunisi(Request $request, $id)
@@ -320,7 +321,7 @@ class SenjataController extends Controller
             $this->logActivity('Penggunaan Amunisi', "Mencatat $jumlah butir $jenisAmunisi dari senjata " . $senjata->no_senpi . " sebagai dipakai", 'Senjata');
         }
 
-        return redirect()->route('senjata.index')->with('success', $msg);
+        return redirect()->route('senjata.pembawa')->with('success', $msg);
     }
 
     private function takeAmunisiFromGudang($senjata, $type, $qty, $note)
@@ -375,6 +376,21 @@ class SenjataController extends Controller
         ]);
     }
 
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!$ids || !is_array($ids)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada data yang dipilih.'], 400);
+        }
+
+        $count = count($ids);
+        Senjata::whereIn('id', $ids)->delete();
+
+        $this->logActivity('Hapus Masal Senjata', "Menghapus $count data senjata secara masal.", 'Senjata');
+
+        return response()->json(['status' => 'success', 'message' => "$count data senjata berhasil dihapus."]);
+    }
+
     public function destroy($id)
     {
         $senjata = Senjata::findOrFail($id);
@@ -385,8 +401,11 @@ class SenjataController extends Controller
         }
 
         $this->logActivity('Hapus Senjata', 'Menghapus data senjata: ' . $senjata->jenis_senpi . ' (NUP: ' . ($senjata->nup ?? '-') . ')', 'Senjata');
+        
+        $route = $senjata->status_penyimpanan === 'Personel' ? 'senjata.pembawa' : 'senjata.index';
         $senjata->delete();
-        return redirect()->route('senjata.index')->with('success', 'Data senjata berhasil dihapus.');
+
+        return redirect()->route($route)->with('success', 'Data senjata berhasil dihapus.');
     }
 
     public function import(Request $request)

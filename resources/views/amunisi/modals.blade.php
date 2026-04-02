@@ -290,12 +290,11 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="flex justify-end gap-3 text-decoration-none">
+                <div class="flex justify-end gap-3 text-decoration-none">
                 <button type="button" @click="showConflictModal = false"
                     class="px-6 py-2.5 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-all">Batal</button>
                 <button type="button" @click="submitResolvedConflicts" :disabled="loading"
-                    class="px-6 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 shadow-lg shadow-primary-500/30 transition-all disabled:opacity-50">
+                        class="px-6 py-2.5 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 border border-primary-500/30 rounded-xl font-bold transition-all" disabled:opacity-50">
                     <span x-show="!loading">Proses Import</span>
                     <span x-show="loading">Memproses...</span>
                 </button>
